@@ -14,7 +14,6 @@ importClass(java.io.File);
 importClass(java.util.concurrent.TimeUnit);
 importClass(java.io.PrintWriter);
 importClass(java.io.FileInputStream);
-
 importPackage(java.io);
 importPackage(java.net);
 importPackage(javax.net.ssl);
@@ -24,20 +23,16 @@ importPackage(javax.xml.bind);
 importPackage(java.util);
 
 function release(context) {
-  var document = context.getReleaseItem();
-
-  //get docID
-  var documentId = document.getId();
+  const document = context.getReleaseItem();
+  const documentId = document.getId();
   log.info("documentId : " + documentId);
-  var boundary = "" + System.currentTimeMillis();
+  const boundary = "" + System.currentTimeMillis();
   log.error("Boundary: " + boundary);
 
   // do web service post
-  var requestURL = "https://api-ged-intra.int.maf.local/v2/upload";
-
-  var url = new URL(requestURL);
-  var httpConn = url.openConnection();
-  var fieldName = "";
+  const requestURL = "https://api-ged-intra.int.maf.local/v2/upload";
+  const httpConn = new URL(requestURL).openConnection();
+  const fieldName = "";
 
   httpConn.setUseCaches(false);
   httpConn.setDoOutput(true); // indicates POST method
@@ -48,26 +43,13 @@ function release(context) {
   httpConn.setRequestMethod("POST");
   httpConn.setConnectTimeout(1000);
 
-  /*  // write the json and get response code
-  var os = new OutputStreamWriter(httpConn.getOutputStream());
-     
-  os.write(json1, 0, json1.length);
-  os.flush();
-  var msg = httpConn.getResponseMessage();
-  var status =httpConn.getResponseCode(); */
-
-  var docFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES);
+  const docFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES);
 
   log.error("docFiles: " + docFiles);
-  var uploadFile = new File(docFiles[documentId][0]);
-  // get file name
-  var fileName = uploadFile.getName();
-
-  // create output stream
-  var outputStream = httpConn.getOutputStream();
-
-  // create writer
-  var writer = new PrintWriter(new OutputStreamWriter(outputStream, "utf-8"), true);
+  const uploadFile = new File(docFiles[documentId][0]);
+  const fileName = uploadFile.getName();
+  const outputStream = httpConn.getOutputStream();
+  const writer = new PrintWriter(new OutputStreamWriter(outputStream, "utf-8"), true);
 
   // write boundary
   writer.append("--" + boundary).append("\r\n");
@@ -90,10 +72,10 @@ function release(context) {
   writer.flush();
 
   // create file input stream and write to output stream
-  var inputStream = new FileInputStream(uploadFile);
+  const inputStream = new FileInputStream(uploadFile);
 
-  var buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 4096)
-  var bytesRead = -1;
+  const buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 4096)
+  const bytesRead = -1;
   while ((bytesRead = inputStream.read(buffer)) != -1) {
     outputStream.write(buffer, 0, bytesRead);
   }
@@ -107,9 +89,9 @@ function release(context) {
   writer.append("--" + boundary + "--").append("\r\n");
   writer.close();
 
-  var msg = httpConn.getResponseMessage();
+  const msg = httpConn.getResponseMessage();
 
-  var status = httpConn.getResponseCode();
+  const status = httpConn.getResponseCode();
   if (status != 200) {
     log.error("Error in POST Upload API: " + status + " " + httpConn.getResponseMessage());
     throw new Exception();
@@ -118,15 +100,15 @@ function release(context) {
   log.error("POST Upload response OK");
   log.error("Mess " + msg);
 
-  var br = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
-  var sb = new StringBuilder();
-  var line = "";
+  const br = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
+  const sb = new StringBuilder();
+  const line = "";
   while ((line = br.readLine()) != null) {
     sb.append(line + "\n");
   }
   br.close();
   log.error("GuiID Normalement " + sb.toString());
-  var json = JSON.parse(sb.toString())
+  const json = JSON.parse(sb.toString())
   log.error("guidFile : " + json.guidFile);
 
   // create json
@@ -144,12 +126,8 @@ function release(context) {
   });
 
   // do web service post
-
-  var requestURL2 = "https://api-ged-intra.int.maf.local/v2/FinalizeUpload";
-  var url2 = new URL(requestURL2);
-  var httpConn2 = url2.openConnection();
-  var fieldName2 = "";
-
+  const requestURL2 = "https://api-ged-intra.int.maf.local/v2/FinalizeUpload";
+  const httpConn2 = new URL(requestURL2).openConnection();
   httpConn2.setUseCaches(false);
   httpConn2.setDoOutput(true); // indicates POST method
   httpConn2.setDoInput(true);
@@ -160,12 +138,12 @@ function release(context) {
   httpConn2.setConnectTimeout(1000);
 
   // write the json and get response code
-  var os = new OutputStreamWriter(httpConn2.getOutputStream());
+  const os = new OutputStreamWriter(httpConn2.getOutputStream());
 
   os.write(strJson, 0, strJson.length);
   os.flush();
-  var msg2 = httpConn2.getResponseMessage();
-  var status2 = httpConn2.getResponseCode();
+  const msg2 = httpConn2.getResponseMessage();
+  const status2 = httpConn2.getResponseCode();
 
   if (status2 == 200) {
     log.error("POST FinalizeUpload response OK");
