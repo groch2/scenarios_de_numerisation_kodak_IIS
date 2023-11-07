@@ -1,3 +1,27 @@
+importPackage(Packages.com.imagetrust.tc.model.object);
+importPackage(Packages.scanserver.released.rdpi);
+importPackage(Packages.scancommon.model.release);
+importClass(java.io.OutputStream);
+importClass(java.io.OutputStreamWriter);
+importClass(javax.net.ssl.HttpsURLConnection);
+importClass(java.io.IOException);
+importClass(java.io.BufferedReader);
+importClass(java.lang.StringBuilder);
+importClass(java.io.InputStreamReader);
+importClass(java.security.MessageDigest);
+importClass(javax.xml.bind.DatatypeConverter);
+importClass(java.io.File);
+importClass(java.util.concurrent.TimeUnit);
+importClass(java.io.PrintWriter);
+importClass(java.io.FileInputStream);
+importPackage(java.io);
+importPackage(java.net);
+importPackage(javax.net.ssl);
+importPackage(java.lang);
+importPackage(java.security);
+importPackage(javax.xml.bind);
+importPackage(java.util);
+
 /**
  * Indexing Script Template
  *
@@ -68,6 +92,9 @@
  *  updated.
  *  
  */
+let familles = null;
+let cotes = null;
+let typesDocument = null;
 
 /**
  * Called the first time a document of this class is loaded.
@@ -75,6 +102,26 @@
  * when Indexing starts, but when a script is loaded, as needed).
  */
 function load(batch) {
+  familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?$select=familleDocumentId,code,libelle&$filter=isActif eq true")).value;
+  cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?$select=coteDocumentId,code,libelle,familleDocumentId&$filter=isActif eq true")).value;
+  typesDocument = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/TypesDocuments?$select=typeDocumentId,code,libelle,coteDocumentId,isActif")).value.filter(({ isActif: isActif }) => isActif).map(({ typeDocumentId: typeDocumentId, code: code, libelle: libelle, coteDocumentId: coteDocumentId }) => ({ typeDocumentId: typeDocumentId, code: code, libelle: libelle, coteDocumentId: coteDocumentId }));
+}
+
+function httpGetRequest(url) {
+  const urlConnection = new URL(url).openConnection();
+  urlConnection.setUseCaches(true);
+  urlConnection.setRequestMethod("GET");
+  urlConnection.setConnectTimeout(1000);
+  // const responseCode = urlConnection.getResponseCode();
+  const bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+  let inputLine;
+  const stringBuffer = new StringBuffer();
+  while ((inputLine = bufferedReader.readLine()) !== null) {
+    stringBuffer.append(inputLine);
+  }
+  bufferedReader.close();
+  urlConnection.disconnect();
+  return stringBuffer.toString();
 }
 
 /**
