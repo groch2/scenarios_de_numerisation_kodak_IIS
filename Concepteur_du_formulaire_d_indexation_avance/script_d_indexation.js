@@ -92,9 +92,9 @@ importPackage(java.util);
  *  updated.
  *  
  */
-let familles = null;
-let cotes = null;
-let typesDocument = null;
+var familles = null;
+var cotes = null;
+var typesDocument = null;
 
 /**
  * Called the first time a document of this class is loaded.
@@ -102,9 +102,35 @@ let typesDocument = null;
  * when Indexing starts, but when a script is loaded, as needed).
  */
 function load(batch) {
-  familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?$select=familleDocumentId,code,libelle&$filter=isActif eq true")).value;
-  cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?$select=coteDocumentId,code,libelle,familleDocumentId&$filter=isActif eq true")).value;
-  typesDocument = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/TypesDocuments?$select=typeDocumentId,code,libelle,coteDocumentId,isActif")).value.filter(({ isActif: isActif }) => isActif).map(({ typeDocumentId: typeDocumentId, code: code, libelle: libelle, coteDocumentId: coteDocumentId }) => ({ typeDocumentId: typeDocumentId, code: code, libelle: libelle, coteDocumentId: coteDocumentId }));
+  debug.print("test log");
+  debug.print("indexing script debug.print");
+
+  familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
+  cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
+  typesDocument = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
+  debug.print("récupération des tryptiques terminée");
+
+  printArrayOfItems(familles);
+  debug.print("fin de l'affichage des familles");
+  debug.print("");
+
+  printArrayOfItems(cotes);
+  debug.print("fin de l'affichage des cotes");
+  debug.print("");
+
+  printArrayOfItems(typesDocument);
+  debug.print("fin de l'affichage des types de document");
+  debug.print("");
+
+  debug.print("fin de la fonction 'load' du script d'indexation");
+
+  function printArrayOfItems(arrayOfItems) {
+    for (var index in arrayOfItems) {
+      for (var property in arrayOfItems[index]) {
+        debug.print(property + ": " + arrayOfItems[index][property]);
+      }
+    }
+  }
 }
 
 function httpGetRequest(url) {
@@ -114,7 +140,7 @@ function httpGetRequest(url) {
   urlConnection.setConnectTimeout(1000);
   // const responseCode = urlConnection.getResponseCode();
   const bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-  let inputLine;
+  var inputLine;
   const stringBuffer = new StringBuffer();
   while ((inputLine = bufferedReader.readLine()) !== null) {
     stringBuffer.append(inputLine);
