@@ -102,52 +102,41 @@ var typesDocument = null;
  * when Indexing starts, but when a script is loaded, as needed).
  */
 function load(batch) {
-  debug.print("test log");
-  debug.print("indexing script debug.print");
+  debug.print("début de la fonction 'load' du script d'indexation");
 
-  familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
-  cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
-  typesDocument = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
+  debug.print("paramètre de la fonction 'load'");
+  printPropertiesOfObject(batch);
+
+  const fields = batch.getFields();
+  debug.print("batch fields :");
+  printArrayOfObjects(fields);
+  printOutputSeparator();
+
+  this.familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
+  this.cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
+  this.typesDocument = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
   debug.print("récupération des tryptiques terminée");
 
-  printArrayOfItems(familles);
-  debug.print("fin de l'affichage des familles");
-  debug.print("");
+  debug.print("nombre de familles chargées dans la fonction 'load'");
+  debug.print(this.familles.length);
+  printOutputSeparator();
 
-  printArrayOfItems(cotes);
+  debug.print("données des familles de document depuis la fonction 'load'");
+  printArrayOfObjects(this.familles);
+  printOutputSeparator();
+
+  /*
+  printArrayOfObjects(cotes);
   debug.print("fin de l'affichage des cotes");
   debug.print("");
 
-  printArrayOfItems(typesDocument);
+  printArrayOfObjects(typesDocument);
   debug.print("fin de l'affichage des types de document");
   debug.print("");
+  */
 
   debug.print("fin de la fonction 'load' du script d'indexation");
-
-  function printArrayOfItems(arrayOfItems) {
-    for (var index in arrayOfItems) {
-      for (var property in arrayOfItems[index]) {
-        debug.print(property + ": " + arrayOfItems[index][property]);
-      }
-    }
-  }
-}
-
-function httpGetRequest(url) {
-  const urlConnection = new URL(url).openConnection();
-  urlConnection.setUseCaches(true);
-  urlConnection.setRequestMethod("GET");
-  urlConnection.setConnectTimeout(1000);
-  // const responseCode = urlConnection.getResponseCode();
-  const bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-  var inputLine;
-  const stringBuffer = new StringBuffer();
-  while ((inputLine = bufferedReader.readLine()) !== null) {
-    stringBuffer.append(inputLine);
-  }
-  bufferedReader.close();
-  urlConnection.disconnect();
-  return stringBuffer.toString();
+  printOutputSeparator();
 }
 
 /**
@@ -168,6 +157,39 @@ function unload(batch) {
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
+  // debug.print("argument 'node' de la fonction 'preProcess'")
+  // printPropertiesValuesOfObject(node);
+  // printOutputSeparator();
+
+  debug.print("données des familles de document depuis la fonction 'preProcess'");
+  printArrayOfObjects(this.familles);
+  printOutputSeparator();
+
+  const familles = [];
+  for (var index = 0; index < this.familles.length; index++) {
+    var famille = this.familles[index];
+
+    if (index == 0) {
+      debug.print("test de famille");
+      printPropertiesOfObject(famille);
+      printOutputSeparator();
+    }
+
+    familles.push([famille.familleDocumentId, famille.libelle]);
+  }
+  debug.print("nombre de familles pour alimenter la liste déroulante :");
+  debug.print(familles.length);
+  printOutputSeparator();
+
+  debug.print("source de données pour la liste déroulante des familles")
+  printArrayOfObjects(familles);
+  printOutputSeparator();
+
+  debug.print("champ 'familles'");
+  printPropertiesOfObject(node.fields['famille']);
+  printOutputSeparator();
+
+  fillDropDownField(node.fields['famille'], familles);
 }
 
 /**
@@ -395,4 +417,46 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) {
  *         (this is the default value, e.g. if you don't return something).
  */
 function keyEvent(evt) {
+}
+
+function httpGetRequest(url) {
+  const urlConnection = new URL(url).openConnection();
+  urlConnection.setUseCaches(true);
+  urlConnection.setRequestMethod("GET");
+  urlConnection.setConnectTimeout(1000);
+  // const responseCode = urlConnection.getResponseCode();
+  const bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+  var inputLine;
+  const stringBuffer = new StringBuffer();
+  while ((inputLine = bufferedReader.readLine()) !== null) {
+    stringBuffer.append(inputLine);
+  }
+  bufferedReader.close();
+  urlConnection.disconnect();
+  return stringBuffer.toString();
+}
+
+function fillDropDownField(dropDownField, keyValueTuplesList) {
+  dropDownField.clearOptions();
+  for (var index in keyValueTuplesList) {
+    dropDownField.addOption(keyValueTuplesList[index][0], keyValueTuplesList[index][1]);
+  }
+}
+
+function printArrayOfObjects(arrayOfObjects) {
+  for (var index in arrayOfObjects) {
+    for (var property in arrayOfObjects[index]) {
+      debug.print(property + ": " + arrayOfObjects[index][property]);
+    }
+  }
+}
+
+function printPropertiesOfObject(object) {
+  for (var property in object) {
+    debug.print(property + ": " + object[property]);
+  }
+}
+
+function printOutputSeparator() {
+  debug.print("_____________________________________________________________________________________________");
 }
