@@ -127,6 +127,9 @@ function unload(batch) {
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
+  debug.print("document fields :")
+  printPropertiesOfObject(node.fields);
+
   /*
   getId
   getUuid
@@ -187,6 +190,7 @@ function preProcess(node) {
  * Called after finishing indexing on a node of this class
  */
 function postProcess(node) {
+  debug.print("fonction postProcess");
 }
 
 /**
