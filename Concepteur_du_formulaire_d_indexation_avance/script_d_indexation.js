@@ -254,6 +254,11 @@ function fieldFocusLost(field, index) {
  * For multivalued fields <code>index</code> is the index of the value loosing the focus, for normal fields it is always 0.
  */
 function fieldChanged(field, index) {
+  if (areStringsEqualsCaseInsensitive(field.name, "date_document")) {
+    debug.print("date document: " + field.value);
+    return;
+  }
+
   debug.print("fonction fieldChanged");
   printPropertiesOfObject(field);
   printOutputSeparator();
@@ -267,7 +272,7 @@ function fieldChanged(field, index) {
   debug.print(field.getValue());
 
   const fieldValues = field.getValues();
-  debug.print("fieldValues");
+  debug.print("fieldValues :");
   debug.print(fieldValues);
   printArrayOfObjects(fieldValues);
   printOutputSeparator();
