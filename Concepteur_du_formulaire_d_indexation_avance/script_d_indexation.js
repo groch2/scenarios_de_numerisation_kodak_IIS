@@ -101,46 +101,6 @@ importPackage(java.util);
 function load(batch) {
   debug.print("début de la fonction 'load' du script d'indexation");
 
-  debug.print("fonctions array disponibles");
-  debug.print("at : " + Array.prototype.at);
-  debug.print("concat : " + Array.prototype.concat);
-  debug.print("copyWithin : " + Array.prototype.copyWithin);
-  debug.print("entries : " + Array.prototype.entries);
-  debug.print("every : " + Array.prototype.every);
-  debug.print("fill : " + Array.prototype.fill);
-  debug.print("filter : " + Array.prototype.filter);
-  debug.print("find : " + Array.prototype.find);
-  debug.print("findIndex : " + Array.prototype.findIndex);
-  debug.print("findLast : " + Array.prototype.findLast);
-  debug.print("findLastIndex : " + Array.prototype.findLastIndex);
-  debug.print("flat : " + Array.prototype.flat);
-  debug.print("flatMap : " + Array.prototype.flatMap);
-  debug.print("forEach : " + Array.prototype.forEach);
-  debug.print("includes : " + Array.prototype.includes);
-  debug.print("indexOf : " + Array.prototype.indexOf);
-  debug.print("join : " + Array.prototype.join);
-  debug.print("keys : " + Array.prototype.keys);
-  debug.print("lastIndexOf : " + Array.prototype.lastIndexOf);
-  debug.print("map : " + Array.prototype.map);
-  debug.print("pop : " + Array.prototype.pop);
-  debug.print("push : " + Array.prototype.push);
-  debug.print("reduce : " + Array.prototype.reduce);
-  debug.print("reduceRight : " + Array.prototype.reduceRight);
-  debug.print("reverse : " + Array.prototype.reverse);
-  debug.print("shift : " + Array.prototype.shift);
-  debug.print("slice : " + Array.prototype.slice);
-  debug.print("some : " + Array.prototype.some);
-  debug.print("sort : " + Array.prototype.sort);
-  debug.print("splice : " + Array.prototype.splice);
-  debug.print("toLocaleString : " + Array.prototype.toLocaleString);
-  debug.print("toReversed : " + Array.prototype.toReversed);
-  debug.print("toSorted : " + Array.prototype.toSorted);
-  debug.print("toSpliced : " + Array.prototype.toSpliced);
-  debug.print("toString : " + Array.prototype.toString);
-  debug.print("unshift : " + Array.prototype.unshift);
-  debug.print("values : " + Array.prototype.values);
-  debug.print("with : " + Array.prototype.with);
-
   this.familles = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
   this.cotes = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
   this.typesDocument = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
@@ -167,36 +127,53 @@ function unload(batch) {
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
-  // debug.print("argument 'node' de la fonction 'preProcess'")
-  // printPropertiesValuesOfObject(node);
-  // printOutputSeparator();
-
-  debug.print("données des familles de document depuis la fonction 'preProcess'");
-  printArrayOfObjects(this.familles);
-  printOutputSeparator();
+  /*
+  getId
+  getUuid
+  getName
+  getLevelName
+  getLevelIndex
+  getJobName
+  getIndexClass
+  getPageCount
+  getDescription
+  getNodeIndex
+  */
+  debug.print("node properties :");
+  ["getId", "getUuid", "getName", "getLevelName", "getLevelIndex", "getJobName", "getIndexClass", "getPageCount", "getDescription", "getNodeIndex"]
+    .forEach(function (methodName) {
+      if (typeof node[methodName] !== 'function') {
+        debug.print(methodName + " is not a function :");
+        debug.print(node[methodName] || "nothing");
+        return;
+      }
+      const propertyValue = node[methodName]();
+      debug.print(methodName + ": " + (propertyValue || "nothing"));
+    })
 
   const familles = [];
   for (var index = 0; index < this.familles.length; index++) {
     var famille = this.familles[index];
     familles.push(["" + famille.familleDocumentId, famille.libelle]);
   }
-  debug.print("nombre de familles pour alimenter la liste déroulante :");
-  debug.print(familles.length);
-  printOutputSeparator();
-
-  debug.print("source de données pour la liste déroulante des familles")
-  printArrayOfObjects(familles);
-  printOutputSeparator();
-
-  debug.print("champ 'familles'");
-  printPropertiesOfObject(node.fields['famille']);
-  printOutputSeparator();
-
   fillDropDownField(node.fields['famille'], familles);
 
-  debug.print("propriétés du noeud :");
-  printPropertiesOfObject(node.properties);
-  printOutputSeparator();
+  const nodeDocuments = node.getDocuments();
+  debug.print("nb documents in node: " + nodeDocuments.length);
+  for (var index = 0; index < nodeDocuments.length; index++) {
+    const document = nodeDocuments[index];
+    const documentPages = document.getPages();
+    for (var index = 0; index < documentPages.length; index++) {
+      const page = documentPages[index];
+      page.sourceFileInfo().fileSize;
+    }
+  }
+
+  node.fields["nom_fichier"].value = node.getName();
+  node.fields["date_document"].value = (function () {
+    const today = new Date();
+    return today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getYear();
+  })();
 }
 
 /**
@@ -503,16 +480,7 @@ function httpGetString(url) {
 }
 
 function fillDropDownField(dropDownField, tuplesList) {
-  debug.print("nombre de données à charger dans la liste déroulante");
-  debug.print(tuplesList.length);
-  printOutputSeparator()
-
   tuplesList.sort(function (a, b) { return compareStringsCaseInsensitive(a[1], b[1]); });
-
-  debug.print("test des données à charger dans la liste déroutante");
-  debug.print(JSON.stringify(tuplesList));
-  printOutputSeparator();
-
   dropDownField.clearOptions();
   for (var index = 0; index < tuplesList.length; index++) {
     var tuple = tuplesList[index];
