@@ -8,11 +8,11 @@
 //typeof(TypeDocument).GetProperties().Select(p => $"TypeDocument{p.Name} = typeDocument.{p.Name},").Dump();
 //Environment.Exit(0);
 
-var httpClient = new HttpClient();
+var httpClient = new HttpClient { BaseAddress = new Uri("https://api-ged-intra.int.maf.local/v2/") };
 var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
 var famillesListJsonResponse =
-	await httpClient.GetStringAsync("https://api-ged-intra.int.maf.local/v2/Familles?$select=familleDocumentId,code,libelle&$filter=isActif eq true");
+	await httpClient.GetStringAsync("Familles?$select=familleDocumentId,code,libelle&$filter=isActif eq true");
 var famillesList =
 	JsonDocument
 		.Parse(famillesListJsonResponse)
@@ -24,7 +24,7 @@ var famillesList =
 			jsonSerializerOptions));
 
 var cotesListJsonResponse =
-	await httpClient.GetStringAsync("https://api-ged-intra.int.maf.local/v2/Cotes?$select=coteDocumentId,code,libelle,familleDocumentId&$filter=isActif eq true");
+	await httpClient.GetStringAsync("Cotes?$select=coteDocumentId,code,libelle,familleDocumentId&$filter=isActif eq true");
 var cotesList =
 	JsonDocument
 		.Parse(cotesListJsonResponse)
@@ -36,7 +36,7 @@ var cotesList =
 				jsonSerializerOptions));
 
 var typesDocumentListJsonResponse =
-	await httpClient.GetStringAsync("https://api-ged-intra.int.maf.local/v2/TypesDocuments?$select=typeDocumentId,code,libelle,coteDocumentId&$filter=isActif eq true");
+	await httpClient.GetStringAsync("TypesDocuments?$select=typeDocumentId,code,libelle,coteDocumentId&$filter=isActif eq true");
 var typesDocumentList =
 	JsonDocument
 		.Parse(typesDocumentListJsonResponse)
