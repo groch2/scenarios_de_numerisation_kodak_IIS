@@ -253,81 +253,68 @@ function fieldFocusLost(field, index) {
  * 
  * For multivalued fields <code>index</code> is the index of the value loosing the focus, for normal fields it is always 0.
  */
-function fieldChanged(field, index) {
-  if (areStringsEqualsCaseInsensitive(field.name, "date_document")) {
-    debug.print("date document: " + field.value);
+function fieldChanged(field) {
+  if (
+    findItemInArrayByPredicate(
+      ["famille", "cote", "type_document", "date_document"],
+      function (item) { return areStringsEqualsCaseInsensitive(field.name, item) }) === null) {
     return;
   }
+}
 
-  debug.print("fonction fieldChanged");
-  printPropertiesOfObject(field);
-  printOutputSeparator();
-  debug.print("index: " + index);
-  printOutputSeparator();
-
-  debug.print("field value as list item :");
+function familleChanged(field, index) {
+  debug.print("famille sélectionnée: " + field.value);
+  debug.print("élément sélectionné :");
   debug.print(field.valueAsListItem || "");
+  const familleDocumentId =
+    findItemInArrayByPredicate(
+      this.familles,
+      function (famille) {
+        return areStringsEqualsCaseInsensitive(famille.libelle, field.value);
+      })
+      .familleDocumentId;
+  debug.print("selected familleDocumentId: " + familleDocumentId);
+  const cotesOfSelectedFamille = this.cotes.filter(function (cote) { return cote.familleDocumentId === familleDocumentId; });
+  debug.print("cotes sélectionnées d'après la famille OK");
+  debug.print(JSON.stringify(cotesOfSelectedFamille));
 
-  debug.print("field get value :");
-  debug.print(field.getValue());
-
-  const fieldValues = field.getValues();
-  debug.print("fieldValues :");
-  debug.print(fieldValues);
-  printArrayOfObjects(fieldValues);
-  printOutputSeparator();
-
-  if (areStringsEqualsCaseInsensitive(field.name, "famille")) {
-    debug.print("famille sélectionnée: " + field.value);
-    debug.print("élément sélectionné :");
-    debug.print(field.valueAsListItem || "");
-    const familleDocumentId =
-      findItemInArrayByPredicate(
-        this.familles,
-        function (famille) {
-          return areStringsEqualsCaseInsensitive(famille.libelle, field.value);
-        })
-        .familleDocumentId;
-    debug.print("selected familleDocumentId: " + familleDocumentId);
-    const cotesOfSelectedFamille = this.cotes.filter(function (cote) { return cote.familleDocumentId === familleDocumentId; });
-    debug.print("cotes sélectionnées d'après la famille OK");
-    debug.print(JSON.stringify(cotesOfSelectedFamille));
-
-    const cotes = [];
-    for (var index = 0; index < cotesOfSelectedFamille.length; index++) {
-      var cote = cotesOfSelectedFamille[index];
-      cotes.push(["" + cote.coteDocumentId, cote.libelle]);
-    }
-    debug.print("cotes pour la liste déroulante :");
-    debug.print(JSON.stringify(cotes));
-
-    fillDropDownField(node.fields['cote'], cotes);
-    return;
+  const cotes = [];
+  for (var index = 0; index < cotesOfSelectedFamille.length; index++) {
+    var cote = cotesOfSelectedFamille[index];
+    cotes.push(["" + cote.coteDocumentId, cote.libelle]);
   }
-  if (areStringsEqualsCaseInsensitive(field.name, "cote")) {
-    const coteDocumentId =
-      findItemInArrayByPredicate(
-        this.cotes,
-        function (cote) {
-          return areStringsEqualsCaseInsensitive(cote.libelle, field.value);
-        })
-        .coteDocumentId;
-    debug.print("selected coteDocumentId: " + coteDocumentId);
-    const typesOfSelectedCote = this.typesDocument.filter(function (type) { return type.coteDocumentId === coteDocumentId; });
-    debug.print("types sélectionnées d'après la cote OK");
-    debug.print(JSON.stringify(typesOfSelectedCote));
+  debug.print("cotes pour la liste déroulante :");
+  debug.print(JSON.stringify(cotes));
 
-    const types = [];
-    for (var index = 0; index < typesOfSelectedCote.length; index++) {
-      var type = typesOfSelectedCote[index];
-      types.push(["" + type.coteDocumentId, type.libelle]);
-    }
-    debug.print("types pour la liste déroulante :");
-    debug.print(JSON.stringify(types));
+  fillDropDownField(node.fields['cote'], cotes);
+}
 
-    fillDropDownField(node.fields['type_document'], types);
-    return;
+function coteChanged(field, index) {
+  const coteDocumentId =
+    findItemInArrayByPredicate(
+      this.cotes,
+      function (cote) {
+        return areStringsEqualsCaseInsensitive(cote.libelle, field.value);
+      })
+      .coteDocumentId;
+  debug.print("selected coteDocumentId: " + coteDocumentId);
+  const typesOfSelectedCote = this.typesDocument.filter(function (type) { return type.coteDocumentId === coteDocumentId; });
+  debug.print("types sélectionnées d'après la cote OK");
+  debug.print(JSON.stringify(typesOfSelectedCote));
+
+  const types = [];
+  for (var index = 0; index < typesOfSelectedCote.length; index++) {
+    var type = typesOfSelectedCote[index];
+    types.push(["" + type.coteDocumentId, type.libelle]);
   }
+  debug.print("types pour la liste déroulante :");
+  debug.print(JSON.stringify(types));
+
+  fillDropDownField(node.fields['type_document'], types);
+}
+
+function date_documentChanged(field) {
+  debug.print("date document: " + field.value);
 }
 
 /**
