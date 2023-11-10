@@ -92,9 +92,6 @@ importPackage(java.util);
  *  updated.
  *  
  */
-var familles = null;
-var cotes = null;
-var typesDocument = null;
 
 /**
  * Called the first time a document of this class is loaded.
@@ -104,13 +101,45 @@ var typesDocument = null;
 function load(batch) {
   debug.print("début de la fonction 'load' du script d'indexation");
 
-  debug.print("paramètre de la fonction 'load'");
-  printPropertiesOfObject(batch);
-
-  const fields = batch.getFields();
-  debug.print("batch fields :");
-  printArrayOfObjects(fields);
-  printOutputSeparator();
+  debug.print("fonctions array disponibles");
+  debug.print("at : " + Array.prototype.at);
+  debug.print("concat : " + Array.prototype.concat);
+  debug.print("copyWithin : " + Array.prototype.copyWithin);
+  debug.print("entries : " + Array.prototype.entries);
+  debug.print("every : " + Array.prototype.every);
+  debug.print("fill : " + Array.prototype.fill);
+  debug.print("filter : " + Array.prototype.filter);
+  debug.print("find : " + Array.prototype.find);
+  debug.print("findIndex : " + Array.prototype.findIndex);
+  debug.print("findLast : " + Array.prototype.findLast);
+  debug.print("findLastIndex : " + Array.prototype.findLastIndex);
+  debug.print("flat : " + Array.prototype.flat);
+  debug.print("flatMap : " + Array.prototype.flatMap);
+  debug.print("forEach : " + Array.prototype.forEach);
+  debug.print("includes : " + Array.prototype.includes);
+  debug.print("indexOf : " + Array.prototype.indexOf);
+  debug.print("join : " + Array.prototype.join);
+  debug.print("keys : " + Array.prototype.keys);
+  debug.print("lastIndexOf : " + Array.prototype.lastIndexOf);
+  debug.print("map : " + Array.prototype.map);
+  debug.print("pop : " + Array.prototype.pop);
+  debug.print("push : " + Array.prototype.push);
+  debug.print("reduce : " + Array.prototype.reduce);
+  debug.print("reduceRight : " + Array.prototype.reduceRight);
+  debug.print("reverse : " + Array.prototype.reverse);
+  debug.print("shift : " + Array.prototype.shift);
+  debug.print("slice : " + Array.prototype.slice);
+  debug.print("some : " + Array.prototype.some);
+  debug.print("sort : " + Array.prototype.sort);
+  debug.print("splice : " + Array.prototype.splice);
+  debug.print("toLocaleString : " + Array.prototype.toLocaleString);
+  debug.print("toReversed : " + Array.prototype.toReversed);
+  debug.print("toSorted : " + Array.prototype.toSorted);
+  debug.print("toSpliced : " + Array.prototype.toSpliced);
+  debug.print("toString : " + Array.prototype.toString);
+  debug.print("unshift : " + Array.prototype.unshift);
+  debug.print("values : " + Array.prototype.values);
+  debug.print("with : " + Array.prototype.with);
 
   this.familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
   this.cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
@@ -168,14 +197,7 @@ function preProcess(node) {
   const familles = [];
   for (var index = 0; index < this.familles.length; index++) {
     var famille = this.familles[index];
-
-    if (index == 0) {
-      debug.print("test de famille");
-      printPropertiesOfObject(famille);
-      printOutputSeparator();
-    }
-
-    familles.push([famille.familleDocumentId, famille.libelle]);
+    familles.push(["" + famille.familleDocumentId, famille.libelle]);
   }
   debug.print("nombre de familles pour alimenter la liste déroulante :");
   debug.print(familles.length);
@@ -232,6 +254,50 @@ function fieldFocusLost(field, index) {
  * For multivalued fields <code>index</code> is the index of the value loosing the focus, for normal fields it is always 0.
  */
 function fieldChanged(field, index) {
+  debug.print("fonction fieldChanged");
+  printPropertiesOfObject(field);
+  printOutputSeparator();
+  debug.print("index: " + index);
+  printOutputSeparator();
+
+  debug.print("field value as list item :");
+  debug.print(field.valueAsListItem || "");
+
+  debug.print("field get value :");
+  debug.print(field.getValue());
+
+  const fieldValues = field.getValues();
+  debug.print("fieldValues");
+  debug.print(fieldValues);
+  printArrayOfObjects(fieldValues);
+  printOutputSeparator();
+
+  if (areStringsEqualsCaseInsensitive(field.name, "famille")) {
+    debug.print("famille sélectionnée: " + field.value);
+    debug.print("élément sélectionné :");
+    debug.print(field.valueAsListItem || "");
+    const familleDocumentId =
+      findItemInArrayByPredicate(
+        this.familles,
+        function (famille) {
+          return areStringsEqualsCaseInsensitive(famille.libelle, field.value);
+        })
+        .familleDocumentId;
+    debug.print("selected familleDocumentId: " + familleDocumentId);
+    const cotesOfSelectedFamille = this.cotes.filter(function (cote) { return cote.familleDocumentId === familleDocumentId; });
+    debug.print("cotes sélectionnées d'après la famille OK");
+    debug.print(JSON.stringify(cotesOfSelectedFamille));
+
+    const cotes = [];
+    for (var index = 0; index < cotesOfSelectedFamille.length; index++) {
+      var cote = cotesOfSelectedFamille[index];
+      cotes.push(["" + cote.coteDocumentId, cote.libelle]);
+    }
+    debug.print("cotes pour la liste déroulante :");
+    debug.print(JSON.stringify(cotes));
+
+    fillDropDownField(node.fields['cote'], cotes);
+  }
 }
 
 /**
@@ -436,10 +502,21 @@ function httpGetRequest(url) {
   return stringBuffer.toString();
 }
 
-function fillDropDownField(dropDownField, keyValueTuplesList) {
+function fillDropDownField(dropDownField, tuplesList) {
+  debug.print("nombre de données à charger dans la liste déroulante");
+  debug.print(tuplesList.length);
+  printOutputSeparator()
+
+  tuplesList.sort(function (a, b) { return compareStringsCaseInsensitive(a[1], b[1]); });
+
+  debug.print("test des données à charger dans la liste déroutante");
+  debug.print(JSON.stringify(tuplesList));
+  printOutputSeparator();
+
   dropDownField.clearOptions();
-  for (var index in keyValueTuplesList) {
-    dropDownField.addOption(keyValueTuplesList[index][0], keyValueTuplesList[index][1]);
+  for (var index = 0; index < tuplesList.length; index++) {
+    var tuple = tuplesList[index];
+    dropDownField.addOption(tuple[0], tuple[1]);
   }
 }
 
@@ -459,4 +536,21 @@ function printPropertiesOfObject(object) {
 
 function printOutputSeparator() {
   debug.print("_____________________________________________________________________________________________");
+}
+
+function compareStringsCaseInsensitive(a, b) {
+  return a.localeCompare(b, undefined, { sensitivity: 'accent' });
+}
+
+function areStringsEqualsCaseInsensitive(a, b) {
+  return compareStringsCaseInsensitive(a, b) === 0;
+}
+
+function findItemInArrayByPredicate(array, predicate) {
+  for (var i = 0; i < array.length; i++) {
+    if (predicate(array[i])) {
+      return array[i];
+    }
+  }
+  return null;
 }
