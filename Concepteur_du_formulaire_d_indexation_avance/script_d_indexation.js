@@ -172,8 +172,15 @@ function preProcess(node) {
   node.fields["nom_fichier"].value = node.getName();
   node.fields["date_document"].value = (function () {
     const today = new Date();
-    return today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getYear();
+    return today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear();
   })();
+
+  const userName = loggedUser.getUsername();
+  debug.print("userName: " + userName);
+  node.fields["depose_par"].value =
+    JSON.parse(
+      httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
+    ).codeUtilisateur;
 }
 
 /**
