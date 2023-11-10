@@ -297,6 +297,31 @@ function fieldChanged(field, index) {
     debug.print(JSON.stringify(cotes));
 
     fillDropDownField(node.fields['cote'], cotes);
+    return;
+  }
+  if (areStringsEqualsCaseInsensitive(field.name, "cote")) {
+    const coteDocumentId =
+      findItemInArrayByPredicate(
+        this.cotes,
+        function (cote) {
+          return areStringsEqualsCaseInsensitive(cote.libelle, field.value);
+        })
+        .coteDocumentId;
+    debug.print("selected coteDocumentId: " + coteDocumentId);
+    const typesOfSelectedCote = this.typesDocument.filter(function (type) { return type.coteDocumentId === coteDocumentId; });
+    debug.print("types sélectionnées d'après la cote OK");
+    debug.print(JSON.stringify(typesOfSelectedCote));
+
+    const types = [];
+    for (var index = 0; index < typesOfSelectedCote.length; index++) {
+      var type = typesOfSelectedCote[index];
+      types.push(["" + type.coteDocumentId, type.libelle]);
+    }
+    debug.print("types pour la liste déroulante :");
+    debug.print(JSON.stringify(types));
+
+    fillDropDownField(node.fields['type_document'], types);
+    return;
   }
 }
 
