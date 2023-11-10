@@ -144,25 +144,6 @@ function load(batch) {
   this.familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
   this.cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
   this.typesDocument = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
-  debug.print("récupération des tryptiques terminée");
-
-  debug.print("nombre de familles chargées dans la fonction 'load'");
-  debug.print(this.familles.length);
-  printOutputSeparator();
-
-  debug.print("données des familles de document depuis la fonction 'load'");
-  printArrayOfObjects(this.familles);
-  printOutputSeparator();
-
-  /*
-  printArrayOfObjects(cotes);
-  debug.print("fin de l'affichage des cotes");
-  debug.print("");
-
-  printArrayOfObjects(typesDocument);
-  debug.print("fin de l'affichage des types de document");
-  debug.print("");
-  */
 
   debug.print("fin de la fonction 'load' du script d'indexation");
   printOutputSeparator();
@@ -212,6 +193,10 @@ function preProcess(node) {
   printOutputSeparator();
 
   fillDropDownField(node.fields['famille'], familles);
+
+  debug.print("propriétés du noeud :");
+  printPropertiesOfObject(node.properties);
+  printOutputSeparator();
 }
 
 /**
@@ -246,6 +231,7 @@ function fieldFocusLost(field, index) {
   return true;
 }
 
+fieldsChangeHandledIndividually = ["famille", "cote", "type_document", "date_document"];
 /**
  * Called every time the value of a field is changed.
  * You may use the markValid() and markInvalid() methods to mark whether the
@@ -256,7 +242,7 @@ function fieldFocusLost(field, index) {
 function fieldChanged(field) {
   if (
     findItemInArrayByPredicate(
-      ["famille", "cote", "type_document", "date_document"],
+      this.fieldsChangeHandledIndividually,
       function (item) { return areStringsEqualsCaseInsensitive(field.name, item) }) === null) {
     return;
   }
