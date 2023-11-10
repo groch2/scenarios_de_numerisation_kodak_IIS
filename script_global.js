@@ -480,3 +480,20 @@ if (isJavaEngine()) {
 String.prototype.left = function (idx) {
   return this.substring(0, idx);
 }
+
+function compareStringsCaseInsensitive(a, b) {
+  return a.localeCompare(b, undefined, { sensitivity: 'accent' });
+}
+
+function areStringsEqualsCaseInsensitive(a, b) {
+  return compareStringsCaseInsensitive(a, b) === 0;
+}
+
+Array.prototype.find = function (predicate) {
+  for (var i = 0; i < this.length; i++) {
+    if (predicate(this[i])) {
+      return this[i];
+    }
+  }
+  return undefined;
+}

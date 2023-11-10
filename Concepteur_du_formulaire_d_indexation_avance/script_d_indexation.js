@@ -141,9 +141,9 @@ function load(batch) {
   debug.print("values : " + Array.prototype.values);
   debug.print("with : " + Array.prototype.with);
 
-  this.familles = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
-  this.cotes = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
-  this.typesDocument = JSON.parse(httpGetRequest("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
+  this.familles = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
+  this.cotes = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
+  this.typesDocument = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
 
   debug.print("fin de la fonction 'load' du script d'indexation");
   printOutputSeparator();
@@ -241,9 +241,8 @@ fieldsChangeHandledIndividually = ["famille", "cote", "type_document", "date_doc
  */
 function fieldChanged(field) {
   if (
-    findItemInArrayByPredicate(
-      this.fieldsChangeHandledIndividually,
-      function (item) { return areStringsEqualsCaseInsensitive(field.name, item) }) === null) {
+    this.fieldsChangeHandledIndividually.find(
+      function (item) { return areStringsEqualsCaseInsensitive(field.name, item) }) !== undefined) {
     return;
   }
 }
@@ -253,9 +252,8 @@ function familleChanged(field, index) {
   debug.print("élément sélectionné :");
   debug.print(field.valueAsListItem || "");
   const familleDocumentId =
-    findItemInArrayByPredicate(
-      this.familles,
-      function (famille) {
+    this.familles
+      .find(function (famille) {
         return areStringsEqualsCaseInsensitive(famille.libelle, field.value);
       })
       .familleDocumentId;
@@ -277,9 +275,8 @@ function familleChanged(field, index) {
 
 function coteChanged(field, index) {
   const coteDocumentId =
-    findItemInArrayByPredicate(
-      this.cotes,
-      function (cote) {
+    this.cotes
+      .find(function (cote) {
         return areStringsEqualsCaseInsensitive(cote.libelle, field.value);
       })
       .coteDocumentId;
@@ -488,7 +485,7 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) {
 function keyEvent(evt) {
 }
 
-function httpGetRequest(url) {
+function httpGetString(url) {
   const urlConnection = new URL(url).openConnection();
   urlConnection.setUseCaches(true);
   urlConnection.setRequestMethod("GET");
@@ -539,21 +536,4 @@ function printPropertiesOfObject(object) {
 
 function printOutputSeparator() {
   debug.print("_____________________________________________________________________________________________");
-}
-
-function compareStringsCaseInsensitive(a, b) {
-  return a.localeCompare(b, undefined, { sensitivity: 'accent' });
-}
-
-function areStringsEqualsCaseInsensitive(a, b) {
-  return compareStringsCaseInsensitive(a, b) === 0;
-}
-
-function findItemInArrayByPredicate(array, predicate) {
-  for (var i = 0; i < array.length; i++) {
-    if (predicate(array[i])) {
-      return array[i];
-    }
-  }
-  return null;
 }
