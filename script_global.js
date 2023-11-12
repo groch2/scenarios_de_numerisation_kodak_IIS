@@ -497,3 +497,18 @@ Array.prototype.find = function (predicate) {
   }
   return undefined;
 }
+
+/**
+ * String.prototype.replaceAll() polyfill
+ * https://gomakethings.com/how-to-replace-a-section-of-a-string-with-another-one-with-vanilla-js/
+ * @author Chris Ferdinandi
+ * @license MIT
+ */
+if (!String.prototype.replaceAll) {
+  String.prototype.replaceAll = function (str, newStr) {
+    return (
+      Object.prototype.toString.call(str).toLowerCase() === '[object regexp]' ?
+        this.replace(str, newStr) :
+        this.replace(new RegExp(str, 'g'), newStr));
+  };
+}

@@ -184,6 +184,8 @@ function preProcess(node) {
     JSON.parse(
       httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
     ).codeUtilisateur;
+
+  node.fields["libelle"].value = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }
 
 /**
