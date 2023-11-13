@@ -98,15 +98,10 @@ importPackage(java.util);
  * This method is called every time the client gets into Indexing mode (not 
  * when Indexing starts, but when a script is loaded, as needed).
  */
-function load(batch) {
-  debug.print("début de la fonction 'load' du script d'indexation");
-
+function load() {
   this.familles = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
   this.cotes = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
   this.typesDocument = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
-
-  debug.print("fin de la fonction 'load' du script d'indexation");
-  printOutputSeparator();
 }
 
 /**
@@ -117,8 +112,7 @@ function load(batch) {
  * case, any changes you make to the Batch from the unload method
  * will not have any effect.
  */
-function unload(batch) {
-}
+function unload(batch) { }
 
 /**
  * Called before starting indexing on a node of this class.
@@ -127,64 +121,23 @@ function unload(batch) {
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
-  debug.print("document fields :")
-  printPropertiesOfObject(node.fields);
-
-  /*
-  getId
-  getUuid
-  getName
-  getLevelName
-  getLevelIndex
-  getJobName
-  getIndexClass
-  getPageCount
-  getDescription
-  getNodeIndex
-  */
-  debug.print("node properties :");
-  ["getId", "getUuid", "getName", "getLevelName", "getLevelIndex", "getJobName", "getIndexClass", "getPageCount", "getDescription", "getNodeIndex"]
-    .forEach(function (methodName) {
-      if (typeof node[methodName] !== 'function') {
-        debug.print(methodName + " is not a function :");
-        debug.print(node[methodName] || "nothing");
-        return;
-      }
-      const propertyValue = node[methodName]();
-      debug.print(methodName + ": " + (propertyValue || "nothing"));
-    })
-
   const familles = [];
   for (var index = 0; index < this.familles.length; index++) {
     var famille = this.familles[index];
     familles.push(["" + famille.familleDocumentId, famille.libelle]);
   }
   fillDropDownField(node.fields['famille'], familles);
-
-  const nodeDocuments = node.getDocuments();
-  debug.print("nb documents in node: " + nodeDocuments.length);
-  for (var index = 0; index < nodeDocuments.length; index++) {
-    const document = nodeDocuments[index];
-    const documentPages = document.getPages();
-    for (var index = 0; index < documentPages.length; index++) {
-      const page = documentPages[index];
-      page.sourceFileInfo().fileSize;
-    }
-  }
-
   node.fields["nom_fichier"].value = node.getName();
   node.fields["date_document"].value = (function () {
     const today = new Date();
     return today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear();
   })();
-
-  const userName = loggedUser.getUsername();
-  debug.print("userName: " + userName);
-  node.fields["depose_par"].value =
-    JSON.parse(
+  node.fields["depose_par"].value = (function () {
+    const userName = loggedUser.getUsername();
+    return JSON.parse(
       httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
     ).codeUtilisateur;
-
+  })();
   node.fields["libelle"].value = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }
 
@@ -203,8 +156,7 @@ function postProcess(node) {
  *  Const.MoveToNextNode: index next node
  *  { MoveToField: '<FieldName>' }: set focus to specific field
  */
-function fieldFocusGained(field, index) {
-}
+function fieldFocusGained(field, index) { }
 
 /**
  * Called before a field loses focus. 
@@ -237,53 +189,48 @@ function fieldChanged(field) {
   }
 }
 
-function familleChanged(field, index) {
-  debug.print("famille sélectionnée: " + field.value);
-  debug.print("élément sélectionné :");
-  debug.print(field.valueAsListItem || "");
+function familleChanged(field) {
+  node.fields['cote'].clearOptions();
+  node.fields['cote'].value = "";
+  node.fields['type_document'].clearOptions();
+  node.fields['type_document'].value = "";
+
   const familleDocumentId =
     this.familles
       .find(function (famille) {
         return areStringsEqualsCaseInsensitive(famille.libelle, field.value);
       })
       .familleDocumentId;
-  debug.print("selected familleDocumentId: " + familleDocumentId);
-  const cotesOfSelectedFamille = this.cotes.filter(function (cote) { return cote.familleDocumentId === familleDocumentId; });
-  debug.print("cotes sélectionnées d'après la famille OK");
-  debug.print(JSON.stringify(cotesOfSelectedFamille));
-
-  const cotes = [];
-  for (var index = 0; index < cotesOfSelectedFamille.length; index++) {
-    var cote = cotesOfSelectedFamille[index];
-    cotes.push(["" + cote.coteDocumentId, cote.libelle]);
-  }
-  debug.print("cotes pour la liste déroulante :");
-  debug.print(JSON.stringify(cotes));
-
-  fillDropDownField(node.fields['cote'], cotes);
+  const cotesOfSelectedFamille =
+    this.cotes.filter(
+      function (cote) {
+        return cote.familleDocumentId === familleDocumentId;
+      }).map(
+        function (cote) {
+          return ["" + cote.coteDocumentId, cote.libelle];
+        });
+  fillDropDownField(node.fields['cote'], cotesOfSelectedFamille);
 }
 
-function coteChanged(field, index) {
+function coteChanged(field) {
+  node.fields['type_document'].clearOptions();
+  node.fields['type_document'].value = "";
+
   const coteDocumentId =
     this.cotes
       .find(function (cote) {
         return areStringsEqualsCaseInsensitive(cote.libelle, field.value);
       })
       .coteDocumentId;
-  debug.print("selected coteDocumentId: " + coteDocumentId);
-  const typesOfSelectedCote = this.typesDocument.filter(function (type) { return type.coteDocumentId === coteDocumentId; });
-  debug.print("types sélectionnées d'après la cote OK");
-  debug.print(JSON.stringify(typesOfSelectedCote));
-
-  const types = [];
-  for (var index = 0; index < typesOfSelectedCote.length; index++) {
-    var type = typesOfSelectedCote[index];
-    types.push(["" + type.coteDocumentId, type.libelle]);
-  }
-  debug.print("types pour la liste déroulante :");
-  debug.print(JSON.stringify(types));
-
-  fillDropDownField(node.fields['type_document'], types);
+  const typesOfSelectedCote =
+    this.typesDocument.filter(
+      function (type) {
+        return type.coteDocumentId === coteDocumentId;
+      }).map(
+        function (type) {
+          return ["" + type.coteDocumentId, type.libelle];
+        });
+  fillDropDownField(node.fields['type_document'], typesOfSelectedCote);
 }
 
 function date_documentChanged(field) {
@@ -295,8 +242,7 @@ function date_documentChanged(field) {
  * Called whenever the structure of a table is changed through the indexing UI (e.g. inserting/deleting rows).
  * 
  */
-function tableChanged(table) {
-}
+function tableChanged(table) { }
 
 /**
  * Called for each field of this IndexClass before indexing starts.
@@ -320,8 +266,7 @@ function tableChanged(table) {
  * 
  * Normally, the properties 'value', 'markedInvalid', 'review' are set.
  */
-function fieldLoad(field) {
-}
+function fieldLoad(field) { }
 
 /**
  * Called for each field of this IndexClass after indexing ends.
@@ -351,8 +296,7 @@ function fieldLoad(field) {
  * 
  * Normally, the properties 'value', 'markedInvalid', 'review' are set.
  */
-function fieldSave(field) {
-}
+function fieldSave(field) { }
 
 /**
  * This is a function that is called under very specific conditions, and always
@@ -382,8 +326,7 @@ function fieldSave(field) {
  * properties for the given fields. For example:
  *   return 'index2.' + field.name;
  */
-function getFieldNamespace(step, node, field) {
-}
+function getFieldNamespace(step, node, field) { }
 
 /**
  * Called whenever the client OCR engine is queried to auto-fill an index field.
@@ -433,8 +376,7 @@ function getFieldNamespace(step, node, field) {
  *  true: if you want the default behavior to be executed (default return value)
  *  false: if you do not want the default behavior to be executed
  */
-function fieldOcrCompleted(field, extractionData, maxConfidenceData) {
-}
+function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
 
 /**
  * This method is called every time a key is pressed and the focus
@@ -472,8 +414,7 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) {
  *   false: if you want the key event to be propagated to the focused control
  *         (this is the default value, e.g. if you don't return something).
  */
-function keyEvent(evt) {
-}
+function keyEvent(evt) { }
 
 function httpGetString(url) {
   const urlConnection = new URL(url).openConnection();
