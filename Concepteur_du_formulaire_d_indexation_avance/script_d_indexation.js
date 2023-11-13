@@ -195,12 +195,16 @@ function familleChanged(field) {
   node.fields['type_document'].clearOptions();
   node.fields['type_document'].value = "";
 
-  const familleDocumentId =
-    this.familles
+  const familleDocumentId = (function () {
+    const famille = this.familles
       .find(function (famille) {
         return areStringsEqualsCaseInsensitive(famille.libelle, field.value);
-      })
-      .familleDocumentId;
+      });
+    return famille !== undefined ? famille.familleDocumentId : null;
+  })();
+  if (familleDocumentId === null) {
+    return;
+  }
   const cotesOfSelectedFamille =
     this.cotes.filter(
       function (cote) {
@@ -216,12 +220,16 @@ function coteChanged(field) {
   node.fields['type_document'].clearOptions();
   node.fields['type_document'].value = "";
 
-  const coteDocumentId =
-    this.cotes
+  const coteDocumentId = (function () {
+    const cote = this.cotes
       .find(function (cote) {
         return areStringsEqualsCaseInsensitive(cote.libelle, field.value);
       })
-      .coteDocumentId;
+    return cote !== undefined ? cote.coteDocumentId : null;
+  })();
+  if (coteDocumentId === null) {
+    return;
+  }
   const typesOfSelectedCote =
     this.typesDocument.filter(
       function (type) {
