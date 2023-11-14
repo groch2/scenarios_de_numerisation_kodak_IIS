@@ -121,6 +121,8 @@ function unload(batch) { }
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
+  // ATTENTION: le remplissage automatique du champ 'libellé' emplêche de terminer l'étape d'indexation pour passer à l'étape d'export
+  // node.fields["libelle"].value = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
   const familles = [];
   for (var index = 0; index < this.familles.length; index++) {
     var famille = this.familles[index];
@@ -138,7 +140,6 @@ function preProcess(node) {
       httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
     ).codeUtilisateur;
   })();
-  node.fields["libelle"].value = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }
 
 /**
