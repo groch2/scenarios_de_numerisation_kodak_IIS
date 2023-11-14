@@ -22,8 +22,18 @@ importPackage(java.security);
 importPackage(javax.xml.bind);
 importPackage(java.util);
 
+log.debug("test debug");
+log.info("test info");
+log.warn("test warn");
+log.error("test error");
+
 function release(context) {
-  debug.print("début de l'envoi du document vers MAF GED");
+  log.debug("test debug 1");
+  log.info("test info 1");
+  log.warn("test warn 1");
+  log.error("test error 1");
+
+  log.info("début de l'envoi du document vers MAF GED");
   /*
 canal_id
 cote
@@ -37,7 +47,7 @@ type_document
 
   const document = context.getReleaseItem();
   const documentId = document.getId();
-  debug.print({ documentId: documentId });
+  log.info({ documentId: documentId });
   const batch = document.getBatch();
   const canal_id = batch.fields["canal_id"].value;
   const cote = batch.fields["cote"].value;
@@ -47,8 +57,8 @@ type_document
   const nom_fichier = batch.fields["nom_fichier"].value;
   const famille = batch.fields["famille"].value;
   const type_document = batch.fields["type_document"].value;
-  debug.print("données d'indexation");
-  debug.print({
+  log.info("données d'indexation");
+  log.info({
     canal_id: canal_id,
     cote: cote,
     depose_par: depose_par,
@@ -76,7 +86,7 @@ type_document
   urlConnection.setRequestMethod("POST");
   urlConnection.setConnectTimeout(1000);
 
-  debug.print("docFiles: " + docFiles);
+  log.info("docFiles: " + docFiles);
   const uploadFile = new File(docFiles[documentId][0]);
   const fileName = uploadFile.getName();
   const outputStream = urlConnection.getOutputStream();
@@ -122,13 +132,13 @@ type_document
 
   const status = urlConnection.getResponseCode();
   if (status != 200) {
-    debug.print("Error in POST Upload API: " + status + " " + urlConnection.getResponseMessage());
+    log.info("Error in POST Upload API: " + status + " " + urlConnection.getResponseMessage());
     throw new Exception();
   }
 
-  debug.print("POST Upload response OK");
+  log.info("POST Upload response OK");
   const msg = urlConnection.getResponseMessage();
-  debug.print("Mess " + msg);
+  log.info("Mess " + msg);
 
   const br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
   const sb = new StringBuilder();
@@ -137,9 +147,9 @@ type_document
     sb.append(line + "\n");
   }
   br.close();
-  debug.print("GuiID Normalement " + sb.toString());
+  log.info("GuiID Normalement " + sb.toString());
   const json = JSON.parse(sb.toString())
-  debug.print("guidFile : " + json.guidFile);
+  log.info("guidFile : " + json.guidFile);
 
   // create json
   const strJson = JSON.stringify({
@@ -171,13 +181,13 @@ type_document
   os.flush();
   const status2 = urlConnection2.getResponseCode();
   if (status2 == 200) {
-    debug.print("POST FinalizeUpload response OK");
+    log.info("POST FinalizeUpload response OK");
     const msg2 = urlConnection2.getResponseMessage();
-    debug.print("Mess " + msg2);
+    log.info("Mess " + msg2);
     uploadFile.delete();
   }
   else {
-    debug.print("Error in POST FinalizeUpload API: " + status2 + " " + urlConnection2.getResponseMessage());
+    log.info("Error in POST FinalizeUpload API: " + status2 + " " + urlConnection2.getResponseMessage());
     throw new Exception();
   }
 }
