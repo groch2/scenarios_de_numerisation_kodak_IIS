@@ -22,12 +22,15 @@ importPackage(java.security);
 importPackage(javax.xml.bind);
 importPackage(java.util);
 
+out.println("test out.println script export");
 log.debug("test debug");
 log.info("test info");
 log.warn("test warn");
 log.error("test error");
 
 function release(context) {
+  out.println("test out.println script export function release");
+
   log.debug("test debug 1");
   log.info("test info 1");
   log.warn("test warn 1");
