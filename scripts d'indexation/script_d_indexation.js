@@ -138,7 +138,7 @@ function preProcess(node) {
     const userName = loggedUser.getUsername();
     return JSON.parse(
       httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
-    ).codeUtilisateur;
+    ).codeUtilisateur.trim();
   })();
 }
 
