@@ -22,21 +22,8 @@ importPackage(java.security);
 importPackage(javax.xml.bind);
 importPackage(java.util);
 
-out.println("test out.println script export");
-log.debug("test debug");
-log.info("test info");
-log.warn("test warn");
-log.error("test error");
-
 function release(context) {
-  out.println("test out.println script export function release");
-
-  log.debug("test debug 1");
-  log.info("test info 1");
-  log.warn("test warn 1");
-  log.error("test error 1");
-
-  log.info("début de l'envoi du document vers MAF GED");
+  out.println("début de l'envoi du document vers MAF GED");
   /*
 canal_id
 cote
@@ -49,9 +36,24 @@ type_document
   */
 
   const document = context.getReleaseItem();
+  out.println("document fields:");
+  const documentFields = document.getFieldsAsList();
+  for (var index = 0; index < documentFields.length; index++) {
+    (function () {
+      const field = documentFields[index];
+      const fieldName = field.getName();
+      const fieldValue = field.getValue();
+      out.println(fieldName + ": " + fieldValue);
+    })();
+  }
+  out.println("document :");
+  out.println(JSON.stringify(document));
   const documentId = document.getId();
-  log.info({ documentId: documentId });
+  out.println(JSON.stringify({ documentId: documentId }));
   const batch = document.getBatch();
+  out.println("get document batch: " + (!!batch));
+  out.println("batch fields :");
+  out.println(JSON.stringify(batch.fields));
   const canal_id = batch.fields["canal_id"].value;
   const cote = batch.fields["cote"].value;
   const depose_par = batch.fields["depose_par"].value;
@@ -60,8 +62,8 @@ type_document
   const nom_fichier = batch.fields["nom_fichier"].value;
   const famille = batch.fields["famille"].value;
   const type_document = batch.fields["type_document"].value;
-  log.info("données d'indexation");
-  log.info({
+  out.println("données d'indexation");
+  out.println(JSON.stringify({
     canal_id: canal_id,
     cote: cote,
     depose_par: depose_par,
@@ -70,7 +72,7 @@ type_document
     nom_fichier: nom_fichier,
     famille: famille,
     type_document: type_document
-  });
+  }));
 
   const docFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES);
   const exportedFile = new File(docFiles[documentId][0]);
@@ -89,7 +91,7 @@ type_document
   urlConnection.setRequestMethod("POST");
   urlConnection.setConnectTimeout(1000);
 
-  log.info("docFiles: " + docFiles);
+  out.println("docFiles: " + docFiles);
   const uploadFile = new File(docFiles[documentId][0]);
   const fileName = uploadFile.getName();
   const outputStream = urlConnection.getOutputStream();
@@ -135,13 +137,13 @@ type_document
 
   const status = urlConnection.getResponseCode();
   if (status != 200) {
-    log.info("Error in POST Upload API: " + status + " " + urlConnection.getResponseMessage());
+    out.println("Error in POST Upload API: " + status + " " + urlConnection.getResponseMessage());
     throw new Exception();
   }
 
-  log.info("POST Upload response OK");
+  out.println("POST Upload response OK");
   const msg = urlConnection.getResponseMessage();
-  log.info("Mess " + msg);
+  out.println("Mess " + msg);
 
   const br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
   const sb = new StringBuilder();
@@ -150,9 +152,9 @@ type_document
     sb.append(line + "\n");
   }
   br.close();
-  log.info("GuiID Normalement " + sb.toString());
+  out.println("identifiant du document 1: " + sb.toString());
   const json = JSON.parse(sb.toString())
-  log.info("guidFile : " + json.guidFile);
+  out.println("identifiant du document 2: " + json.guidFile);
 
   // create json
   const strJson = JSON.stringify({
@@ -184,13 +186,13 @@ type_document
   os.flush();
   const status2 = urlConnection2.getResponseCode();
   if (status2 == 200) {
-    log.info("POST FinalizeUpload response OK");
+    out.println("POST FinalizeUpload response OK");
     const msg2 = urlConnection2.getResponseMessage();
-    log.info("Mess " + msg2);
+    out.println("Mess " + msg2);
     uploadFile.delete();
   }
   else {
-    log.info("Error in POST FinalizeUpload API: " + status2 + " " + urlConnection2.getResponseMessage());
+    out.println("Error in POST FinalizeUpload API: " + status2 + " " + urlConnection2.getResponseMessage());
     throw new Exception();
   }
 }

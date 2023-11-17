@@ -14,11 +14,6 @@ importPackage(java.lang);
 
 out.println("test out.println script export configuration");
 
-log.debug("test debug 1");
-log.info("test info 1");
-log.warn("test warn 1");
-log.error("test error 1");
-
 /**
 * This method is called to configure or reconfigure this Export Destination. This method is called
 * on a new Export Destination instance, right after it has been created, or an existing
@@ -30,8 +25,7 @@ log.error("test error 1");
 * The 'log' is a logging facility for use by this Export Destination instance
 */
 function configure(configuration, log) {
-  out.println("test out.println script export configuration configure function");
-  log.info("script de configuration - configure");
+  out.println("script de configuration - configure");
 }
 
 /**
@@ -51,8 +45,7 @@ function getMaxConcurrentThreads() {
 * Export Destination instance fully started, ready to export items.
 */
 function start() {
-  out.println("test out.println script export configuration start function");
-  log.info("script de configuration - start");
+  out.println("script de configuration - start");
 }
 
 /**
@@ -64,6 +57,5 @@ function start() {
 * ready to be either reconfigured and restarted, as if it were new, or discarded.
 */
 function stop() {
-  out.println("test out.println script export configuration stop function");
-  log.info("script de configuration - stop");
+  out.println("script de configuration - stop");
 }
