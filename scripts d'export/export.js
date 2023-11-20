@@ -14,28 +14,35 @@ importClass(java.net.URL);
 
 function release(context) {
   const gedApiBaseAddress = "https://api-ged-intra.int.maf.local/v2/";
-  const document = context.getReleaseItem();
-  const fileId = document.getField("file_id").value;
-  const file = new File("c:\\InfoInputSolution\\exports\\" + fileId + ".pdf");
 
-  if (!file.exists()) {
-    var errorMessage = "le fichier à exporter n'existe pas";
-    log.error(errorMessage);
-    throw new Exception(errorMessage);
-  }
+  (function () {
+    const document = context.getReleaseItem();
+    const fileId = document.getField("file_id").value;
+    const file = new File("c:\\InfoInputSolution\\exports\\" + fileId + ".pdf");
 
-  if (!file.canRead()) {
-    var errorMessage = "le fichier à exporter ne peut pas être lu";
-    log.error(errorMessage);
-    throw new Exception(errorMessage);
-  }
+    if (!file.exists()) {
+      var errorMessage = "le fichier à exporter n'existe pas";
+      log.error(errorMessage);
+      throw new Exception(errorMessage);
+    }
 
-  const fileUploadGuid = uploadDocumentToGED(file).fileUploadGuid;
-  out.println(JSON.stringify({ fileUploadGuid: fileUploadGuid }));
+    if (!file.canRead()) {
+      var errorMessage = "le fichier à exporter ne peut pas être lu";
+      log.error(errorMessage);
+      throw new Exception(errorMessage);
+    }
 
-  const documentId = finalizeDocumentUpload(fileUploadGuid, document.getFields(), file.length()).documentId;
-  file.delete();
-  out.println(JSON.stringify({ documentId: documentId }));
+    const fileUploadGuid = uploadDocumentToGED(file).fileUploadGuid;
+    out.println(JSON.stringify({ fileUploadGuid: fileUploadGuid }));
+
+    const documentId =
+      finalizeDocumentUpload(
+        fileUploadGuid,
+        document.getFields(),
+        file.length()).documentId;
+    file.delete();
+    out.println(JSON.stringify({ documentId: documentId }));
+  })();
 
   function uploadDocumentToGED(file) {
     const requestURL = gedApiBaseAddress + "upload";
