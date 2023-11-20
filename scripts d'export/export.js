@@ -36,10 +36,11 @@ function release(context) {
     out.println(JSON.stringify({ fileUploadGuid: fileUploadGuid }));
 
     const documentId =
-      finalizeDocumentUpload(
-        fileUploadGuid,
-        document.getFields(),
-        file.length()).documentId;
+      finalizeDocumentUpload({
+        fileUploadGuid: fileUploadGuid,
+        documentFields: document.getFields(),
+        fileSize: file.length()
+      }).documentId;
     file.delete();
     out.println(JSON.stringify({ documentId: documentId }));
   })();
@@ -111,7 +112,7 @@ function release(context) {
     return { fileUploadGuid: JSON.parse(responseContent).guidFile };
   }
 
-  function finalizeDocumentUpload(fileUploadGuid, documentFields, fileSize) {
+  function finalizeDocumentUpload({ fileUploadGuid: fileUploadGuid, documentFields: documentFields, fileSize: fileSize }) {
     const canal_id = documentFields["canal_id"].getValue();
     const depose_par = documentFields["depose_par"].getValue();
     const date_document = documentFields["date_document"].getValue();
