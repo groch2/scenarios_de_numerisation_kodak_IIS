@@ -95,7 +95,9 @@ function release(context) {
       httpStatus: status_1,
       httpResponseMessage: urlConnection_1.getResponseMessage()
     })
+    urlConnection_1.disconnect();
     log.error(error);
+    out.println(error);
     throw new Exception(error);
   }
 
@@ -111,13 +113,14 @@ function release(context) {
   inputStreamReader_1.close();
   inputStream_1.close();
   urlConnection_1.disconnect();
-  const guidFile = JSON.parse(stringBuilder_1.toString()).guidFile;
 
+  const guidFile = JSON.parse(stringBuilder_1.toString()).guidFile;
   const documentFields = document.getFields();
   const canal_id = documentFields["canal_id"].getValue();
   const depose_par = documentFields["depose_par"].getValue();
   const date_document = documentFields["date_document"].getValue();
   const libelle = documentFields["libelle"].getValue();
+  out.println(JSON.stringify({ libelle: libelle }));
   const nom_fichier = documentFields["nom_fichier"].getValue();
   const famille_code = documentFields["famille_code"].getValue();
   const cote_code = documentFields["cote_code"].getValue();
@@ -153,7 +156,9 @@ function release(context) {
   outputStreamWriter_2.close();
   outputStream_2.close();
   const status_2 = urlConnection_2.getResponseCode();
+  out.println("finalize upload status: " + status_2);
   if (status_2 === 200) {
+    urlConnection_2.disconnect();
     file.delete();
   }
   else {
@@ -162,8 +167,9 @@ function release(context) {
       httpStatus: status_2,
       httpResponseMessage: urlConnection_2.getResponseMessage()
     })
+    urlConnection_2.disconnect();
+    out.println(error);
     log.error(error);
     throw new Exception(error);
   }
-  urlConnection_2.disconnect();
 }
