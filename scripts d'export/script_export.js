@@ -23,6 +23,7 @@ importPackage(javax.xml.bind);
 importPackage(java.util);
 
 function release(context) {
+  const gedApiBaseAddress = "https://api-ged-intra.int.maf.local/v2/";
   const document = context.getReleaseItem();
   const fileId = document.getField("file_id").value;
   const file = new File("c:\\InfoInputSolution\\exports\\" + fileId + ".pdf");
@@ -39,146 +40,149 @@ function release(context) {
     throw new Exception(errorMessage);
   }
 
-  const gedApiBaseAddress = "https://api-ged-intra.int.maf.local/v2/";
+  const fileUploadGuid = uploadDocumentToGED(file).fileUploadGuid;
+  out.println(JSON.stringify({ fileUploadGuid: fileUploadGuid }));
 
-  const requestURL_1 = gedApiBaseAddress + "upload";
-  const urlConnection_1 = new URL(requestURL_1).openConnection();
+  const documentId = finalizeDocumentUpload(fileUploadGuid, document.getFields(), file.length()).documentId;
+  file.delete();
+  out.println(JSON.stringify({ documentId: documentId }));
 
-  urlConnection_1.setUseCaches(false);
-  urlConnection_1.setDoOutput(true);
-  urlConnection_1.setDoInput(true);
-  const boundary = System.currentTimeMillis().toString();
-  urlConnection_1.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-  urlConnection_1.setRequestProperty("Accept", "application/json; charset=utf-8");
-  urlConnection_1.setRequestMethod("POST");
-  urlConnection_1.setConnectTimeout(1000);
-  urlConnection_1.connect();
+  function uploadDocumentToGED(file) {
+    const requestURL = gedApiBaseAddress + "upload";
+    const urlConnection = new URL(requestURL).openConnection();
 
-  const outputStream_1 = urlConnection_1.getOutputStream();
-  const outputStreamWriter_1 = new OutputStreamWriter(outputStream_1, "utf-8")
-  const printWriter_1 = new PrintWriter(outputStreamWriter_1, true);
+    urlConnection.setUseCaches(false);
+    urlConnection.setDoOutput(true);
+    urlConnection.setDoInput(true);
+    const boundary = System.currentTimeMillis().toString();
+    urlConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+    urlConnection.setRequestProperty("Accept", "application/json; charset=utf-8");
+    urlConnection.setRequestMethod("POST");
+    urlConnection.setConnectTimeout(1000);
+    urlConnection.connect();
 
-  printWriter_1.append("--" + boundary).append("\r\n");
-  const fileName = file.getName();
-  printWriter_1.append(
-    "Content-Disposition: form-data; name=file; filename=\"" + fileName + "\"")
-    .append("\r\n");
+    const outputStream = urlConnection.getOutputStream();
+    const outputStreamWriter = new OutputStreamWriter(outputStream, "utf-8")
+    const printWriter = new PrintWriter(outputStreamWriter, true);
 
-  printWriter_1
-    .append("Content-Type: application/pdf")
-    .append("\r\n")
-    .append("\r\n");
-  printWriter_1.flush();
+    printWriter.append("--" + boundary).append("\r\n");
+    const fileName = file.getName();
+    printWriter.append(
+      "Content-Disposition: form-data; name=file; filename=\"" + fileName + "\"")
+      .append("\r\n");
 
-  const fileInputStream_1 = new FileInputStream(file);
-  const buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 4096)
-  var bytesRead = -1;
-  while ((bytesRead = fileInputStream_1.read(buffer)) !== -1) {
-    outputStream_1.write(buffer, 0, bytesRead);
+    printWriter
+      .append("Content-Type: application/pdf")
+      .append("\r\n")
+      .append("\r\n");
+    printWriter.flush();
+
+    const fileInputStream = new FileInputStream(file);
+    const buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 4096)
+    var bytesRead = -1;
+    while ((bytesRead = fileInputStream.read(buffer)) !== -1) {
+      outputStream.write(buffer, 0, bytesRead);
+    }
+    outputStream.flush();
+    fileInputStream.close();
+
+    printWriter.append("\r\n");
+    printWriter.flush();
+
+    printWriter.append("\r\n").flush();
+    printWriter.append("--" + boundary + "--").append("\r\n");
+    printWriter.close();
+    outputStreamWriter.close();
+    outputStream.close();
+
+    const responseCode = urlConnection.getResponseCode();
+    if (responseCode !== 200) {
+      var error = JSON.stringify({
+        workflowStep: "file upload",
+        httpStatus: responseCode,
+        httpResponseMessage: urlConnection.getResponseMessage()
+      })
+      urlConnection.disconnect();
+      log.error(error);
+      out.println(error);
+      throw new Exception(error);
+    }
+
+    const responseContent = getHttpRequestResponseContent(urlConnection);
+    urlConnection.disconnect();
+
+    return { fileUploadGuid: JSON.parse(responseContent).guidFile };
   }
-  outputStream_1.flush();
-  fileInputStream_1.close();
 
-  printWriter_1.append("\r\n");
-  printWriter_1.flush();
+  function finalizeDocumentUpload(fileUploadGuid, documentFields, fileSize) {
+    const canal_id = documentFields["canal_id"].getValue();
+    const depose_par = documentFields["depose_par"].getValue();
+    const date_document = documentFields["date_document"].getValue();
+    const libelle = documentFields["libelle"].getValue();
+    const nom_fichier = documentFields["nom_fichier"].getValue();
+    const famille_code = documentFields["famille_code"].getValue();
+    const cote_code = documentFields["cote_code"].getValue();
+    const type_document_code = documentFields["type_document_code"].getValue();
+    const jsonDocumentMetadata = JSON.stringify({
+      "fileId": fileUploadGuid,
+      "libelle": libelle,
+      "deposePar": depose_par,
+      "dateDocument": date_document,
+      "fichierNom": nom_fichier,
+      "fichierTaille": fileSize,
+      "categoriesFamille": famille_code,
+      "categoriesCote": cote_code,
+      "categoriesTypeDocument": type_document_code,
+      "canalId": canal_id
+    });
 
-  printWriter_1.append("\r\n").flush();
-  printWriter_1.append("--" + boundary + "--").append("\r\n");
-  printWriter_1.close();
-  outputStreamWriter_1.close();
-  outputStream_1.close();
+    const requestURL = gedApiBaseAddress + "FinalizeUpload";
+    const urlConnection = new URL(requestURL).openConnection();
+    urlConnection.setUseCaches(false);
+    urlConnection.setDoOutput(true);
+    urlConnection.setDoInput(true);
+    urlConnection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+    urlConnection.setRequestProperty("Accept", "application/json; charset=utf-8");
+    urlConnection.setRequestMethod("POST");
+    urlConnection.setConnectTimeout(1000);
+    urlConnection.connect();
 
-  const status_1 = urlConnection_1.getResponseCode();
-  if (status_1 !== 200) {
-    var error = JSON.stringify({
-      workflowStep: "file upload",
-      httpStatus: status_1,
-      httpResponseMessage: urlConnection_1.getResponseMessage()
-    })
-    urlConnection_1.disconnect();
-    log.error(error);
-    out.println(error);
-    throw new Exception(error);
-  }
-
-  const fileUploadResponseContent = getHttpRequestResponseStringContent(urlConnection_1);
-  urlConnection_1.disconnect();
-
-  const guidFile = JSON.parse(fileUploadResponseContent).guidFile;
-  const documentFields = document.getFields();
-  const canal_id = documentFields["canal_id"].getValue();
-  const depose_par = documentFields["depose_par"].getValue();
-  const date_document = documentFields["date_document"].getValue();
-  const libelle = documentFields["libelle"].getValue();
-  out.println(JSON.stringify({ libelle: libelle }));
-  const nom_fichier = documentFields["nom_fichier"].getValue();
-  const famille_code = documentFields["famille_code"].getValue();
-  const cote_code = documentFields["cote_code"].getValue();
-  const type_document_code = documentFields["type_document_code"].getValue();
-  const fileSize = file.length();
-  const jsonDocumentMetadata = JSON.stringify({
-    "fileId": guidFile,
-    "libelle": libelle,
-    "deposePar": depose_par,
-    "dateDocument": date_document,
-    "fichierNom": nom_fichier,
-    "fichierTaille": fileSize,
-    "categoriesFamille": famille_code,
-    "categoriesCote": cote_code,
-    "categoriesTypeDocument": type_document_code,
-    "canalId": canal_id
-  });
-
-  const requestURL_2 = gedApiBaseAddress + "FinalizeUpload";
-  const urlConnection_2 = new URL(requestURL_2).openConnection();
-  urlConnection_2.setUseCaches(false);
-  urlConnection_2.setDoOutput(true);
-  urlConnection_2.setDoInput(true);
-  urlConnection_2.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-  urlConnection_2.setRequestProperty("Accept", "application/json; charset=utf-8");
-  urlConnection_2.setRequestMethod("POST");
-  urlConnection_2.setConnectTimeout(1000);
-  urlConnection_2.connect();
-
-  const outputStream_2 = urlConnection_2.getOutputStream()
-  const outputStreamWriter_2 = new OutputStreamWriter(outputStream_2);
-  outputStreamWriter_2.write(jsonDocumentMetadata, 0, jsonDocumentMetadata.length);
-  outputStreamWriter_2.flush();
-  outputStreamWriter_2.close();
-  outputStream_2.close();
-  const status_2 = urlConnection_2.getResponseCode();
-  out.println("finalize upload status: " + status_2);
-  if (status_2 === 200) {
-    const finalizeUploadResponseContent = getHttpRequestResponseStringContent(urlConnection_2);
-    const documentId = JSON.parse(finalizeUploadResponseContent).documentId
-    out.println("documentId: " + documentId);
-    urlConnection_2.disconnect();
-    file.delete();
-  }
-  else {
-    var error = JSON.stringify({
+    const outputStream = urlConnection.getOutputStream()
+    const outputStreamWriter = new OutputStreamWriter(outputStream);
+    outputStreamWriter.write(jsonDocumentMetadata, 0, jsonDocumentMetadata.length);
+    outputStreamWriter.flush();
+    outputStreamWriter.close();
+    outputStream.close();
+    const responseCode = urlConnection.getResponseCode();
+    if (responseCode === 200) {
+      const responseContent = getHttpRequestResponseContent(urlConnection);
+      const documentId = JSON.parse(responseContent).documentId
+      urlConnection.disconnect();
+      return { documentId: documentId };
+    }
+    const error = JSON.stringify({
       workflowStep: "finalize upload",
-      httpStatus: status_2,
-      httpResponseMessage: urlConnection_2.getResponseMessage()
+      httpStatus: responseCode,
+      httpResponseMessage: urlConnection.getResponseMessage()
     })
-    urlConnection_2.disconnect();
+    urlConnection.disconnect();
     out.println(error);
     log.error(error);
     throw new Exception(error);
   }
-}
 
-function getHttpRequestResponseStringContent(urlConnection) {
-  const inputStream = urlConnection.getInputStream();
-  const inputStreamReader = new InputStreamReader(inputStream)
-  const bufferedReader = new BufferedReader(inputStreamReader);
-  const stringBuilder = new StringBuilder();
-  var line = "";
-  while ((line = bufferedReader.readLine()) !== null) {
-    stringBuilder.append(line + "\n");
+  function getHttpRequestResponseContent(urlConnection) {
+    const inputStream = urlConnection.getInputStream();
+    const inputStreamReader = new InputStreamReader(inputStream)
+    const bufferedReader = new BufferedReader(inputStreamReader);
+    const stringBuilder = new StringBuilder();
+    var line = "";
+    while ((line = bufferedReader.readLine()) !== null) {
+      stringBuilder.append(line + "\n");
+    }
+    bufferedReader.close();
+    inputStreamReader.close();
+    inputStream.close();
+    return stringBuilder.toString();
   }
-  bufferedReader.close();
-  inputStreamReader.close();
-  inputStream.close();
-  return stringBuilder.toString();
 }
