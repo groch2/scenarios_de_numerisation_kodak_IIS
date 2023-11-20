@@ -59,10 +59,9 @@ function release(context) {
   const printWriter_1 = new PrintWriter(outputStreamWriter_1, true);
 
   printWriter_1.append("--" + boundary).append("\r\n");
-
   const fileName = file.getName();
   printWriter_1.append(
-    "Content-Disposition: form-data; name=file; filename=" + fileName + "; filename*=utf-8''" + fileName)
+    "Content-Disposition: form-data; name=file; filename=\"" + fileName + "\"")
     .append("\r\n");
 
   printWriter_1
@@ -86,29 +85,31 @@ function release(context) {
   printWriter_1.append("\r\n").flush();
   printWriter_1.append("--" + boundary + "--").append("\r\n");
   printWriter_1.close();
+  outputStreamWriter_1.close();
+  outputStream_1.close();
 
-  const status = urlConnection_1.getResponseCode();
-  if (status !== 200) {
-    const error = JSON.stringify({
+  const status_1 = urlConnection_1.getResponseCode();
+  if (status_1 !== 200) {
+    var error = JSON.stringify({
       workflowStep: "file upload",
-      httpStatus: status,
+      httpStatus: status_1,
       httpResponseMessage: urlConnection_1.getResponseMessage()
     })
     log.error(error);
     throw new Exception(error);
   }
 
-  out.println("POST Upload response OK");
-  const msg_1 = urlConnection_1.getResponseMessage();
-  out.println("Mess " + msg_1);
-
-  const bufferedReader_1 = new BufferedReader(new InputStreamReader(urlConnection_1.getInputStream()));
+  const inputStream_1 = urlConnection_1.getInputStream();
+  const inputStreamReader_1 = new InputStreamReader(inputStream_1)
+  const bufferedReader_1 = new BufferedReader(inputStreamReader_1);
   const stringBuilder_1 = new StringBuilder();
   var line = "";
   while ((line = bufferedReader_1.readLine()) !== null) {
     stringBuilder_1.append(line + "\n");
   }
   bufferedReader_1.close();
+  inputStreamReader_1.close();
+  inputStream_1.close();
   urlConnection_1.disconnect();
   const guidFile = JSON.parse(stringBuilder_1.toString()).guidFile;
 
@@ -134,7 +135,6 @@ function release(context) {
     "categoriesTypeDocument": type_document_code,
     "canalId": canal_id
   });
-  out.println("jsonDocumentMetadata: " + jsonDocumentMetadata);
 
   const requestURL_2 = gedApiBaseAddress + "FinalizeUpload";
   const urlConnection_2 = new URL(requestURL_2).openConnection();
@@ -145,23 +145,25 @@ function release(context) {
   urlConnection_2.setRequestProperty("Accept", "application/json; charset=utf-8");
   urlConnection_2.setRequestMethod("POST");
   urlConnection_2.setConnectTimeout(1000);
-  out.println("initialisation de la requête de finalisation OK");
 
-  const outputStreamWriter_2 = new OutputStreamWriter(urlConnection_2.getOutputStream());
+  const outputStream_2 = urlConnection_2.getOutputStream()
+  const outputStreamWriter_2 = new OutputStreamWriter(outputStream_2);
   outputStreamWriter_2.write(jsonDocumentMetadata, 0, jsonDocumentMetadata.length);
   outputStreamWriter_2.flush();
+  outputStreamWriter_2.close();
+  outputStream_2.close();
   const status_2 = urlConnection_2.getResponseCode();
-  out.println("statut de la réponse de la requête de finalisation: " + status_2);
   if (status_2 === 200) {
-    out.println("POST FinalizeUpload response OK");
-    const msg_2 = urlConnection_2.getResponseMessage();
-    out.println("Mess " + msg_2);
     file.delete();
   }
   else {
-    out.println("Error in POST FinalizeUpload API: " + status_2 + " " + urlConnection_2.getResponseMessage());
-    throw new Exception();
+    var error = JSON.stringify({
+      workflowStep: "finalize upload",
+      httpStatus: status_2,
+      httpResponseMessage: urlConnection_2.getResponseMessage()
+    })
+    log.error(error);
+    throw new Exception(error);
   }
-  out.println("l'export est terminé avec succès");
   urlConnection_2.disconnect();
 }
