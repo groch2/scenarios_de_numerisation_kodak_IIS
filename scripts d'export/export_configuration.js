@@ -12,13 +12,6 @@
 importPackage(java.io);
 importPackage(java.lang);
 
-log.debug("test debug export configuration");
-log.info("test info export configuration");
-log.warn("test warn export configuration");
-log.error("test error export configuration");
-
-out.println("test out.println script export configuration");
-
 /**
 * This method is called to configure or reconfigure this Export Destination. This method is called
 * on a new Export Destination instance, right after it has been created, or an existing
@@ -29,9 +22,7 @@ out.println("test out.println script export configuration");
 * The configuration object provides access to the components on the dialog, namely getParameters, getParameter
 * The 'log' is a logging facility for use by this Export Destination instance
 */
-function configure(configuration, log) {
-  out.println("script de configuration - configure");
-}
+function configure(configuration, log) { }
 
 /**
 * This method expresses the level of parallelism supported by this Export Destination. The Export
@@ -39,9 +30,7 @@ function configure(configuration, log) {
 * Export Destination instance. If this Export Destination only supports
 * single-threaded operation, this method should return 1.
 */
-function getMaxConcurrentThreads() {
-  return 1;
-}
+function getMaxConcurrentThreads() { return 1; }
 
 /**
 * This method is called to start this Export Destination instance. This method allows the
@@ -49,9 +38,7 @@ function getMaxConcurrentThreads() {
 * etc. Upon successfully returning from this method, the Export Server considers this
 * Export Destination instance fully started, ready to export items.
 */
-function start() {
-  out.println("script de configuration - start");
-}
+function start() { }
 
 /**
 * This method is called to stop this Export Destination instance. This method signals the
@@ -61,6 +48,4 @@ function start() {
 * method, the Export Server considers this Export Destination instance fully stopped,
 * ready to be either reconfigured and restarted, as if it were new, or discarded.
 */
-function stop() {
-  out.println("script de configuration - stop");
-}
+function stop() { }
