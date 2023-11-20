@@ -101,20 +101,10 @@ function release(context) {
     throw new Exception(error);
   }
 
-  const inputStream_1 = urlConnection_1.getInputStream();
-  const inputStreamReader_1 = new InputStreamReader(inputStream_1)
-  const bufferedReader_1 = new BufferedReader(inputStreamReader_1);
-  const stringBuilder_1 = new StringBuilder();
-  var line = "";
-  while ((line = bufferedReader_1.readLine()) !== null) {
-    stringBuilder_1.append(line + "\n");
-  }
-  bufferedReader_1.close();
-  inputStreamReader_1.close();
-  inputStream_1.close();
+  const fileUploadResponseContent = getHttpRequestResponseStringContent(urlConnection_1);
   urlConnection_1.disconnect();
 
-  const guidFile = JSON.parse(stringBuilder_1.toString()).guidFile;
+  const guidFile = JSON.parse(fileUploadResponseContent).guidFile;
   const documentFields = document.getFields();
   const canal_id = documentFields["canal_id"].getValue();
   const depose_par = documentFields["depose_par"].getValue();
@@ -159,6 +149,9 @@ function release(context) {
   const status_2 = urlConnection_2.getResponseCode();
   out.println("finalize upload status: " + status_2);
   if (status_2 === 200) {
+    const finalizeUploadResponseContent = getHttpRequestResponseStringContent(urlConnection_2);
+    const documentId = JSON.parse(finalizeUploadResponseContent).documentId
+    out.println("documentId: " + documentId);
     urlConnection_2.disconnect();
     file.delete();
   }
@@ -173,4 +166,19 @@ function release(context) {
     log.error(error);
     throw new Exception(error);
   }
+}
+
+function getHttpRequestResponseStringContent(urlConnection) {
+  const inputStream = urlConnection.getInputStream();
+  const inputStreamReader = new InputStreamReader(inputStream)
+  const bufferedReader = new BufferedReader(inputStreamReader);
+  const stringBuilder = new StringBuilder();
+  var line = "";
+  while ((line = bufferedReader.readLine()) !== null) {
+    stringBuilder.append(line + "\n");
+  }
+  bufferedReader.close();
+  inputStreamReader.close();
+  inputStream.close();
+  return stringBuilder.toString();
 }
