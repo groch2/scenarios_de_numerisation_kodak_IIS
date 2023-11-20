@@ -148,6 +148,16 @@ function preProcess(node) {
  */
 function postProcess(node) {
   debug.print("fonction postProcess");
+  out.println("tryptique sélectionné :");
+  out.println(
+    JSON.stringify({
+      familleDocumentCode: this.familleDocumentCode,
+      coteDocumentCode: this.coteDocumentCode,
+      typeDocumentCode: this.typeDocumentCode
+    }));
+  node.fields["famille_code"].value = this.familleDocumentCode;
+  node.fields["cote_code"].value = this.coteDocumentCode;
+  node.fields["type_document_code"].value = this.typeDocumentCode;
 }
 
 /**
@@ -197,23 +207,27 @@ function familleChanged(field) {
   node.fields['type_document'].clearOptions();
   node.fields['type_document'].value = "";
 
-  const familleDocumentId = (function () {
-    const famille = this.familles
-      .find(function (famille) {
-        return areStringsEqualsCaseInsensitive(famille.libelle, field.value);
+  const familleDocument = (function () {
+    const familleDocument = this.familles
+      .find(function (familleDocument) {
+        return areStringsEqualsCaseInsensitive(familleDocument.libelle, field.value);
       });
-    return famille !== undefined ? famille.familleDocumentId : null;
+    if (familleDocument === undefined) {
+      return null;
+    }
+    return { familleDocumentId: familleDocument.familleDocumentId, code: familleDocument.code };
   })();
-  if (familleDocumentId === null) {
+  if (familleDocument === null) {
     return;
   }
+  this.familleDocumentCode = familleDocument.code;
   const cotesOfSelectedFamille =
     this.cotes.filter(
-      function (cote) {
-        return cote.familleDocumentId === familleDocumentId;
+      function (coteDocument) {
+        return coteDocument.familleDocumentId === familleDocument.familleDocumentId;
       }).map(
-        function (cote) {
-          return ["" + cote.coteDocumentId, cote.libelle];
+        function (coteDocument) {
+          return [coteDocument.coteDocumentId.toString(), coteDocument.libelle];
         });
   fillDropDownField(node.fields['cote'], cotesOfSelectedFamille);
 }
@@ -222,25 +236,37 @@ function coteChanged(field) {
   node.fields['type_document'].clearOptions();
   node.fields['type_document'].value = "";
 
-  const coteDocumentId = (function () {
-    const cote = this.cotes
-      .find(function (cote) {
-        return areStringsEqualsCaseInsensitive(cote.libelle, field.value);
+  const coteDocument = (function () {
+    const coteDocument = this.cotes
+      .find(function (coteDocument) {
+        return areStringsEqualsCaseInsensitive(coteDocument.libelle, field.value);
       })
-    return cote !== undefined ? cote.coteDocumentId : null;
+    if (coteDocument === undefined) {
+      return null;
+    }
+    return { coteDocumentId: coteDocument.coteDocumentId, code: coteDocument.code };
   })();
-  if (coteDocumentId === null) {
+  if (coteDocument === null) {
     return;
   }
+  this.coteDocumentCode = coteDocument.code;
   const typesOfSelectedCote =
     this.typesDocument.filter(
-      function (type) {
-        return type.coteDocumentId === coteDocumentId;
+      function (typeDocument) {
+        return typeDocument.coteDocumentId === coteDocument.coteDocumentId;
       }).map(
         function (type) {
-          return ["" + type.coteDocumentId, type.libelle];
+          return [type.coteDocumentId.toString(), type.libelle];
         });
   fillDropDownField(node.fields['type_document'], typesOfSelectedCote);
+}
+
+function type_documentChanged(field) {
+  const typeDocument = this.typesDocument
+    .find(function (typeDocument) {
+      return areStringsEqualsCaseInsensitive(typeDocument.libelle, field.value);
+    })
+  this.typeDocumentCode = typeDocument !== undefined ? typeDocument.code : null;
 }
 
 function date_documentChanged(field) {

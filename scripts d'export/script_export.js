@@ -129,27 +129,27 @@ type_document
 
   const documentFields = document.getFields();
   const canal_id = documentFields["canal_id"].getValue();
-  const cote = documentFields["cote"].getValue();
   const depose_par = documentFields["depose_par"].getValue();
   const date_document = documentFields["date_document"].getValue();
   const libelle = documentFields["libelle"].getValue();
   out.println("libellé: " + libelle);
   const nom_fichier = documentFields["nom_fichier"].getValue();
-  const famille = documentFields["famille"].getValue();
-  const type_document = documentFields["type_document"].getValue();
-  const strJson = JSON.stringify({
+  const famille_code = documentFields["famille_code"].getValue();
+  const cote_code = documentFields["cote_code"].getValue();
+  const type_document_code = documentFields["type_document_code"].getValue();
+  const jsonDocumentMetadata = JSON.stringify({
     "fileId": json.guidFile,
     "libelle": libelle,
     "deposePar": depose_par,
     "dateDocument": date_document,
     "fichierNom": nom_fichier,
     "fichierTaille": fileSize,
-    "categoriesFamille": famille,
-    "categoriesCote": cote,
-    "categoriesTypeDocument": type_document,
+    "categoriesFamille": famille_code,
+    "categoriesCote": cote_code,
+    "categoriesTypeDocument": type_document_code,
     "canalId": canal_id
   });
-  out.println("strJson: " + strJson);
+  out.println("jsonDocumentMetadata: " + jsonDocumentMetadata);
 
   // do web service post
   const requestURL_2 = "https://api-ged-intra.int.maf.local/v2/FinalizeUpload";
@@ -165,7 +165,7 @@ type_document
 
   // write the json and get response code
   const outputStreamWriter_2 = new OutputStreamWriter(urlConnection_2.getOutputStream());
-  outputStreamWriter_2.write(strJson, 0, strJson.length);
+  outputStreamWriter_2.write(jsonDocumentMetadata, 0, jsonDocumentMetadata.length);
   outputStreamWriter_2.flush();
   const status_2 = urlConnection_2.getResponseCode();
   out.println("statut de la réponse de la requête de finalisation: " + status_2);

@@ -1,6 +1,7 @@
 importClass(java.net.URL);
 importClass(java.io.BufferedReader);
 importClass(java.lang.StringBuffer);
+importClass(java.util.UUID);
 
 /**
  * Global script template.
@@ -532,4 +533,8 @@ function httpGetString(url) {
   bufferedReader.close();
   urlConnection.disconnect();
   return stringBuffer.toString();
+}
+
+function getRandomGuid() {
+  return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }
