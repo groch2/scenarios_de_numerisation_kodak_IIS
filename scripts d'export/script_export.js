@@ -23,6 +23,8 @@ importPackage(javax.xml.bind);
 importPackage(java.util);
 
 function release(context) {
+  out.println("is log available in export script in context function: " + (!!log));
+
   out.println("début de l'envoi du document vers MAF GED");
   /*
 canal_id
@@ -36,127 +38,105 @@ type_document
   */
 
   const document = context.getReleaseItem();
-  out.println("document fields:");
-  const documentFields = document.getFieldsAsList();
-  for (var index = 0; index < documentFields.length; index++) {
-    (function () {
-      const field = documentFields[index];
-      const fieldName = field.getName();
-      const fieldValue = field.getValue();
-      out.println(fieldName + ": " + fieldValue);
-    })();
-  }
-  out.println("document :");
-  out.println(JSON.stringify(document));
   const documentId = document.getId();
-  out.println(JSON.stringify({ documentId: documentId }));
-  const batch = document.getBatch();
-  out.println("get document batch: " + (!!batch));
-  out.println("batch fields :");
-  out.println(JSON.stringify(batch.fields));
-  const canal_id = batch.fields["canal_id"].value;
-  const cote = batch.fields["cote"].value;
-  const depose_par = batch.fields["depose_par"].value;
-  const date_document = batch.fields["date_document"].value;
-  const libelle = batch.fields["libelle"].value;
-  const nom_fichier = batch.fields["nom_fichier"].value;
-  const famille = batch.fields["famille"].value;
-  const type_document = batch.fields["type_document"].value;
-  out.println("données d'indexation");
-  out.println(JSON.stringify({
-    canal_id: canal_id,
-    cote: cote,
-    depose_par: depose_par,
-    date_document: date_document,
-    libelle: libelle,
-    nom_fichier: nom_fichier,
-    famille: famille,
-    type_document: type_document
-  }));
+  out.println("documentId: " + documentId);
 
-  const docFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES);
-  const exportedFile = new File(docFiles[documentId][0]);
-  const fileSize = exportedFile.length();
+  const fileId = document.getField("file_id").value;
+  out.println("fileId: " + fileId);
+
+  const file = new File("c:\\InfoInputSolution\\exports\\" + fileId + ".pdf");
+  out.println("file path: " + file.getPath());
+  out.println("file exists: " + file.exists());
+  out.println("can read file: " + file.canRead());
+  const fileSize = file.length();
+  out.println("fileSize : " + fileSize);
 
   // do web service post
-  const requestURL = "https://api-ged-intra.int.maf.local/v2/upload";
-  const urlConnection = new URL(requestURL).openConnection();
-  const fieldName = "";
+  const requestURL_1 = "https://api-ged-intra.int.maf.local/v2/upload";
+  const urlConnection_1 = new URL(requestURL_1).openConnection();
+  out.println("url connection opened: " + !!urlConnection_1);
 
-  urlConnection.setUseCaches(false);
-  urlConnection.setDoInput(true);
-  urlConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-  urlConnection.setRequestProperty("Accept", "application/json; utf-8");
-  urlConnection.setRequestProperty("Accept", "*/*");
-  urlConnection.setRequestMethod("POST");
-  urlConnection.setConnectTimeout(1000);
+  urlConnection_1.setUseCaches(false);
+  urlConnection_1.setDoOutput(true);
+  urlConnection_1.setDoInput(true);
+  const boundary = System.currentTimeMillis().toString();
+  out.println("boundary: " + boundary);
+  urlConnection_1.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+  urlConnection_1.setRequestProperty("Accept", "application/json; utf-8");
+  urlConnection_1.setRequestProperty("Accept", "*/*");
+  urlConnection_1.setRequestMethod("POST");
+  urlConnection_1.setConnectTimeout(1000);
+  out.println("urlConnection configured: " + !!urlConnection_1);
 
-  out.println("docFiles: " + docFiles);
-  const uploadFile = new File(docFiles[documentId][0]);
-  const fileName = uploadFile.getName();
-  const outputStream = urlConnection.getOutputStream();
-  const writer = new PrintWriter(new OutputStreamWriter(outputStream, "utf-8"), true);
+  const fileName = file.getName();
+  const outputStream_1 = urlConnection_1.getOutputStream();
+  const printWriter_1 = new PrintWriter(new OutputStreamWriter(outputStream_1, "utf-8"), true);
+  out.println("initialisation de la préparation de la requête http terminée")
 
-  // write boundary
-  writer.append("--" + boundary).append("\r\n");
+  printWriter_1.append("--" + boundary).append("\r\n");
+  out.println("PrintWriter fonctionnne");
 
-  // Content-Disposition passing name (ScannedFile) and filename
-  writer.append(
-    "Content-Disposition: form-data; name=\"" + fieldName
-    + "\"; filename=\"" + fileName + "\"")
+  printWriter_1.append(
+    "Content-Disposition: form-data; name=\"\"; filename=\"" + fileName + "\"")
     .append("\r\n");
 
-  // write Content-Type as PDF    
-  writer.append(
-    "Content-Type: application/tif")
-    //+ URLConnection.guessContentTypeFromName(fileName))
+  printWriter_1.append(
+    "Content-Type: application/pdf")
     .append("\r\n");
 
-  // get encoding to binary
-  writer.append("Content-Transfer-Encoding: binary").append("\r\n");
-  writer.append("\r\n");
-  writer.flush();
+  printWriter_1.append("Content-Transfer-Encoding: binary").append("\r\n");
+  printWriter_1.append("\r\n");
+  printWriter_1.flush();
 
-  // create file input stream and write to output stream
-  const inputStream = new FileInputStream(uploadFile);
-
+  const fileInputStream_1 = new FileInputStream(file);
   const buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 4096)
-  const bytesRead = -1;
-  while ((bytesRead = inputStream.read(buffer)) != -1) {
-    outputStream.write(buffer, 0, bytesRead);
+  var bytesRead = -1;
+  while ((bytesRead = fileInputStream_1.read(buffer)) !== -1) {
+    outputStream_1.write(buffer, 0, bytesRead);
   }
-  outputStream.flush();
-  inputStream.close();
+  outputStream_1.flush();
+  fileInputStream_1.close();
 
-  writer.append("\r\n");
-  writer.flush();
+  printWriter_1.append("\r\n");
+  printWriter_1.flush();
 
-  writer.append("\r\n").flush();
-  writer.append("--" + boundary + "--").append("\r\n");
-  writer.close();
+  printWriter_1.append("\r\n").flush();
+  printWriter_1.append("--" + boundary + "--").append("\r\n");
+  printWriter_1.close();
 
-  const status = urlConnection.getResponseCode();
-  if (status != 200) {
-    out.println("Error in POST Upload API: " + status + " " + urlConnection.getResponseMessage());
+  out.println("envoi de la requête http d'upload du document");
+  const status = urlConnection_1.getResponseCode();
+  if (status !== 200) {
+    out.println("Error in POST Upload API: " + status + " " + urlConnection_1.getResponseMessage());
     throw new Exception();
   }
 
   out.println("POST Upload response OK");
-  const msg = urlConnection.getResponseMessage();
+  const msg = urlConnection_1.getResponseMessage();
   out.println("Mess " + msg);
 
-  const br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-  const sb = new StringBuilder();
-  const line = "";
-  while ((line = br.readLine()) != null) {
-    sb.append(line + "\n");
+  const bufferedReader_1 = new BufferedReader(new InputStreamReader(urlConnection_1.getInputStream()));
+  const stringBuilder_1 = new StringBuilder();
+  var line = "";
+  while ((line = bufferedReader_1.readLine()) !== null) {
+    stringBuilder_1.append(line + "\n");
   }
-  br.close();
-  out.println("identifiant du document 1: " + sb.toString());
-  const json = JSON.parse(sb.toString())
-  out.println("identifiant du document 2: " + json.guidFile);
+  bufferedReader_1.close();
+  urlConnection_1.disconnect();
+  out.println("identifiant de l'upload du document: " + stringBuilder_1.toString());
+  const json = JSON.parse(stringBuilder_1.toString())
+  out.println("guidFile : " + json.guidFile);
 
-  // create json
+  const documentFields = document.getFields();
+  const canal_id = documentFields["canal_id"].getValue();
+  const cote = documentFields["cote"].getValue();
+  const depose_par = documentFields["depose_par"].getValue();
+  const date_document = documentFields["date_document"].getValue();
+  const libelle = documentFields["libelle"].getValue();
+  out.println("libellé: " + libelle);
+  const nom_fichier = documentFields["nom_fichier"].getValue();
+  const famille = documentFields["famille"].getValue();
+  const type_document = documentFields["type_document"].getValue();
   const strJson = JSON.stringify({
     "fileId": json.guidFile,
     "libelle": libelle,
@@ -169,30 +149,36 @@ type_document
     "categoriesTypeDocument": type_document,
     "canalId": canal_id
   });
+  out.println("strJson: " + strJson);
 
   // do web service post
-  const requestURL2 = "https://api-ged-intra.int.maf.local/v2/FinalizeUpload";
-  const urlConnection2 = new URL(requestURL2).openConnection();
-  urlConnection2.setUseCaches(false);
-  urlConnection2.setDoInput(true);
-  urlConnection2.setRequestProperty("Content-Type", "application/json;odata.metadata=minimal;odata.streaming=true");
-  urlConnection2.setRequestProperty("Accept", "application/json;odata.metadata=minimal;odata.streaming=true");
-  urlConnection2.setRequestMethod("POST");
-  urlConnection2.setConnectTimeout(1000);
+  const requestURL_2 = "https://api-ged-intra.int.maf.local/v2/FinalizeUpload";
+  const urlConnection_2 = new URL(requestURL_2).openConnection();
+  urlConnection_2.setUseCaches(false);
+  urlConnection_2.setDoOutput(true);
+  urlConnection_2.setDoInput(true);
+  urlConnection_2.setRequestProperty("Content-Type", "application/json;odata.metadata=minimal;odata.streaming=true");
+  urlConnection_2.setRequestProperty("Accept", "application/json;odata.metadata=minimal;odata.streaming=true");
+  urlConnection_2.setRequestMethod("POST");
+  urlConnection_2.setConnectTimeout(1000);
+  out.println("initialisation de la requête de finalisation OK");
 
   // write the json and get response code
-  const os = new OutputStreamWriter(urlConnection2.getOutputStream());
-  os.write(strJson, 0, strJson.length);
-  os.flush();
-  const status2 = urlConnection2.getResponseCode();
-  if (status2 == 200) {
+  const outputStreamWriter_2 = new OutputStreamWriter(urlConnection_2.getOutputStream());
+  outputStreamWriter_2.write(strJson, 0, strJson.length);
+  outputStreamWriter_2.flush();
+  const status_2 = urlConnection_2.getResponseCode();
+  out.println("statut de la réponse de la requête de finalisation: " + status_2);
+  if (status_2 === 200) {
     out.println("POST FinalizeUpload response OK");
-    const msg2 = urlConnection2.getResponseMessage();
-    out.println("Mess " + msg2);
-    uploadFile.delete();
+    const msg_2 = urlConnection_2.getResponseMessage();
+    out.println("Mess " + msg_2);
+    file.delete();
   }
   else {
-    out.println("Error in POST FinalizeUpload API: " + status2 + " " + urlConnection2.getResponseMessage());
+    out.println("Error in POST FinalizeUpload API: " + status_2 + " " + urlConnection_2.getResponseMessage());
     throw new Exception();
   }
+  out.println("l'export est terminé avec succès");
+  urlConnection_2.disconnect();
 }

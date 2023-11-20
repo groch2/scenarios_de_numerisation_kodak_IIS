@@ -12,6 +12,11 @@
 importPackage(java.io);
 importPackage(java.lang);
 
+log.debug("test debug export configuration");
+log.info("test info export configuration");
+log.warn("test warn export configuration");
+log.error("test error export configuration");
+
 out.println("test out.println script export configuration");
 
 /**

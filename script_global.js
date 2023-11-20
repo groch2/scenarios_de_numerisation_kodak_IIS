@@ -1,3 +1,7 @@
+importClass(java.net.URL);
+importClass(java.io.BufferedReader);
+importClass(java.lang.StringBuffer);
+
 /**
  * Global script template.
  * 
@@ -511,4 +515,21 @@ if (!String.prototype.replaceAll) {
         this.replace(str, newStr) :
         this.replace(new RegExp(str, 'g'), newStr));
   };
+}
+
+function httpGetString(url) {
+  const urlConnection = new URL(url).openConnection();
+  urlConnection.setUseCaches(true);
+  urlConnection.setRequestMethod("GET");
+  urlConnection.setConnectTimeout(1000);
+  // const responseCode = urlConnection.getResponseCode();
+  const bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+  var inputLine;
+  const stringBuffer = new StringBuffer();
+  while ((inputLine = bufferedReader.readLine()) !== null) {
+    stringBuffer.append(inputLine);
+  }
+  bufferedReader.close();
+  urlConnection.disconnect();
+  return stringBuffer.toString();
 }

@@ -121,8 +121,9 @@ function unload(batch) { }
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
-  // ATTENTION: le remplissage automatique du champ 'libellé' emplêche de terminer l'étape d'indexation pour passer à l'étape d'export
-  // node.fields["libelle"].value = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+  node.fields["libelle"].value = getRandomGuid();
+  node.fields["file_id"].value = getRandomGuid();
+  out.println("fileId: " + node.fields["file_id"].value);
   const familles = [];
   for (var index = 0; index < this.familles.length; index++) {
     var famille = this.familles[index];
@@ -425,23 +426,6 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  */
 function keyEvent(evt) { }
 
-function httpGetString(url) {
-  const urlConnection = new URL(url).openConnection();
-  urlConnection.setUseCaches(true);
-  urlConnection.setRequestMethod("GET");
-  urlConnection.setConnectTimeout(1000);
-  // const responseCode = urlConnection.getResponseCode();
-  const bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-  var inputLine;
-  const stringBuffer = new StringBuffer();
-  while ((inputLine = bufferedReader.readLine()) !== null) {
-    stringBuffer.append(inputLine);
-  }
-  bufferedReader.close();
-  urlConnection.disconnect();
-  return stringBuffer.toString();
-}
-
 function fillDropDownField(dropDownField, tuplesList) {
   tuplesList.sort(function (a, b) { return compareStringsCaseInsensitive(a[1], b[1]); });
   dropDownField.clearOptions();
@@ -467,4 +451,8 @@ function printPropertiesOfObject(object) {
 
 function printOutputSeparator() {
   debug.print("_____________________________________________________________________________________________");
+}
+
+function getRandomGuid() {
+  return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }
