@@ -43,7 +43,6 @@ function release(context) {
 
   const requestURL_1 = gedApiBaseAddress + "upload";
   const urlConnection_1 = new URL(requestURL_1).openConnection();
-  out.println("url connection opened: " + !!urlConnection_1);
 
   urlConnection_1.setUseCaches(false);
   urlConnection_1.setDoOutput(true);
@@ -53,6 +52,7 @@ function release(context) {
   urlConnection_1.setRequestProperty("Accept", "application/json; charset=utf-8");
   urlConnection_1.setRequestMethod("POST");
   urlConnection_1.setConnectTimeout(1000);
+  urlConnection_1.connect();
 
   const outputStream_1 = urlConnection_1.getOutputStream();
   const outputStreamWriter_1 = new OutputStreamWriter(outputStream_1, "utf-8")
@@ -148,6 +148,7 @@ function release(context) {
   urlConnection_2.setRequestProperty("Accept", "application/json; charset=utf-8");
   urlConnection_2.setRequestMethod("POST");
   urlConnection_2.setConnectTimeout(1000);
+  urlConnection_2.connect();
 
   const outputStream_2 = urlConnection_2.getOutputStream()
   const outputStreamWriter_2 = new OutputStreamWriter(outputStream_2);
