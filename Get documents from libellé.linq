@@ -13,7 +13,7 @@ var httpClient =
 	new HttpClient {
 		BaseAddress = new Uri("https://api-ged-intra.int.maf.local/v2/Documents/")
 	};
-const string libellé = "8201E5D28AB14993865C8CCAEE2E5A6D";
+const string libellé = "048EEBC354C749669CBAF2625F9E8633";
 var actual_documents =
 	await httpClient.GetStringAsync(
 		$"?$filter=libelle eq '{libellé}'");
@@ -26,17 +26,15 @@ var documents =
 		.Select(document => Newtonsoft.Json.JsonConvert.DeserializeObject<MAF.GED.Domain.Model.Document>(document.ToString()))
 		.Select(document =>
 			new {
-				document.AssigneRedacteur,
+				document.DeposePar,
 				document.CategoriesCote,
 				document.CategoriesFamille,
 				document.CategoriesTypeDocument,
-				document.CompteId,
 				document.DateDocument,
 				document.DocumentId,
 				document.Extension,
 				document.FichierNom,
 				document.Libelle,
-				document.PersonneId,
 			})
 		.OrderBy(document => document.DocumentId);
 documents.Dump();
