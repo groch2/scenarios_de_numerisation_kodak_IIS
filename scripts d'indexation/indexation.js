@@ -461,24 +461,6 @@ function fillDropDownField(dropDownField, tuplesList) {
   }
 }
 
-function printArrayOfObjects(arrayOfObjects) {
-  for (var index in arrayOfObjects) {
-    for (var property in arrayOfObjects[index]) {
-      debug.print(property + ": " + arrayOfObjects[index][property]);
-    }
-  }
-}
-
-function printPropertiesOfObject(object) {
-  for (var property in object) {
-    debug.print(property + ": " + object[property]);
-  }
-}
-
-function printOutputSeparator() {
-  debug.print("_____________________________________________________________________________________________");
-}
-
 function getRandomGuid() {
   return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }
