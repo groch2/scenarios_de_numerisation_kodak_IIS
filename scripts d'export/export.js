@@ -17,9 +17,11 @@ function release(context) {
 
   (function () {
     const document = context.getReleaseItem();
-    const releaseItemId = document.getId();
-    const outputFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES)[releaseItemId];
-    const file = new File(outputFiles[0]);
+    const file = (function () {
+      const releaseItemId = document.getId();
+      const outputFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES)[releaseItemId];
+      return new File(outputFiles[0]);
+    })();
 
     if (!file.exists()) {
       var errorMessage = "le fichier à exporter n'existe pas";
@@ -35,6 +37,7 @@ function release(context) {
 
     const fileUploadGuid = uploadDocumentToGED(file).fileUploadGuid;
     out.println(JSON.stringify({ fileUploadGuid: fileUploadGuid }));
+    log.info(JSON.stringify({ fileUploadGuid: fileUploadGuid }));
 
     const documentId =
       finalizeDocumentUpload({
@@ -44,6 +47,7 @@ function release(context) {
       }).documentId;
     file.delete();
     out.println(JSON.stringify({ documentId: documentId }));
+    log.info(JSON.stringify({ documentId: documentId }));
   })();
 
   function uploadDocumentToGED(file) {
@@ -134,6 +138,8 @@ function release(context) {
       "categoriesTypeDocument": type_document_code,
       "canalId": canal_id
     });
+    out.println("jsonDocumentMetadata :");
+    out.println(jsonDocumentMetadata);
 
     const requestURL = gedApiBaseAddress + "FinalizeUpload";
     const urlConnection = new URL(requestURL).openConnection();
