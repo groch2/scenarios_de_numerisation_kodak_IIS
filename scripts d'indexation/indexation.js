@@ -200,22 +200,28 @@ function fieldChanged(field) {
 }
 
 function familleChanged(field) {
-  node.fields['cote'].clearOptions();
-  node.fields['cote'].value = "";
-  node.fields['type_document'].clearOptions();
-  node.fields['type_document'].value = "";
+  ['cote', 'type_document']
+    .forEach(function (field) {
+      node.fields[field].clearOptions();
+      node.fields[field].value = "";
+    });
+  node.fields['type_document'].readOnly = true;
 
   const familleDocument = (function () {
     const familleDocument = this.familles
       .find(function (familleDocument) {
         return areStringsEqualsCaseInsensitive(familleDocument.libelle, field.value);
       });
-    if (familleDocument === undefined) {
-      return null;
-    }
-    return { familleDocumentId: familleDocument.familleDocumentId, code: familleDocument.code };
+    return familleDocument === undefined ?
+      null :
+      {
+        familleDocumentId: familleDocument.familleDocumentId,
+        code: familleDocument.code
+      };
   })();
-  if (familleDocument === null) {
+  const isFamilleNull = familleDocument === null;
+  node.fields['cote'].readOnly = isFamilleNull;
+  if (isFamilleNull) {
     return;
   }
   this.familleDocumentCode = familleDocument.code;
@@ -239,12 +245,16 @@ function coteChanged(field) {
       .find(function (coteDocument) {
         return areStringsEqualsCaseInsensitive(coteDocument.libelle, field.value);
       })
-    if (coteDocument === undefined) {
-      return null;
-    }
-    return { coteDocumentId: coteDocument.coteDocumentId, code: coteDocument.code };
+    return coteDocument === undefined ?
+      null :
+      {
+        coteDocumentId: coteDocument.coteDocumentId,
+        code: coteDocument.code
+      };
   })();
-  if (coteDocument === null) {
+  const isCoteNull = coteDocument === null;
+  node.fields['type_document'].readOnly = isCoteNull;
+  if (isCoteNull) {
     return;
   }
   this.coteDocumentCode = coteDocument.code;
