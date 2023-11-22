@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project name="report" default="collect_info">
+  <property name="installation_root" value="../" />
+  <property name="logs_dir" value="${installation_root}/logs" />
+  <property name="client_dir" value="${installation_root}/client" />
+  <property name="ocrdata_dir" value="${installation_root}/add-ons/ocr-data" />
+  <property name="client_html_dir" value="${installation_root}/client-html" />
+  <property name="auth_service_dir" value="${installation_root}/auth-service" />
+  <property name="tomcat_conf_dir" value="${installation_root}/apache-tomcat-conf" />
+  <property name="tomcat_dir" value="${installation_root}/apache-tomcat" />
+  <property name="server_webinf_dir" value="${installation_root}/server/WEB-INF" />
+  <property name="service_html_webinf_dir" value="${installation_root}/service-html/WEB-INF" />
+  <property name="released_dir" value="${installation_root}/released" />
+  <property name="importd_dir" value="${installation_root}/importd" />
+  <property name="persistence_dir" value="${installation_root}/persistence" />
+  <property name="tools_dir" value="${installation_root}/tools" />
+  <property name="temp_dir" value="${logs_dir}/temp" />
+  
+  <target name="-prepare_temp_directory" unless="directory_temp_exists">
+    <mkdir dir="${temp_dir}" />
+  </target>
+  
+  <target name="-init">
+    <available file="${installation_root}" property="directory_stage_main_exists"/>    
+    <available file="${installation_root}/client" property="directory_stage_client_exists"/>
+    <available file="${logs_dir}" property="directory_temp_exists"/>
+  </target>
+
+  <target name="-copy_files">
+
+
+    <copy preservelastmodified="true" todir="${temp_dir}/logs" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${logs_dir}" erroronmissingdir="false">
+          <include name="**/*.log*" />
+          <include name="**/*.txt" />
+        </fileset>
+      </resources>
+    </copy>
+
+    <copy preservelastmodified="true" todir="${temp_dir}/client" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${client_dir}" erroronmissingdir="false">
+          <include name="**/*.jsp*" />
+		  <include name="**/*.jnlp*" />
+          <include name="**/*.txt" />
+          <include name="**/*.ini" />
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/add-ons/ocr-data" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${ocrdata_dir}" erroronmissingdir="false">
+          <include name="**/*.txt" />
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/client-html" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${client_html_dir}" erroronmissingdir="false">
+          <include name="**/*.jsp*" />              
+        </fileset>
+      </resources>
+    </copy>
+
+
+    <copy preservelastmodified="true" todir="${temp_dir}/server/WEB-INF" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${server_webinf_dir}" erroronmissingdir="false">
+          <include name="*.log*" />
+          <include name="*.bin" />
+          <include name="*.xml" />
+          <include name="licensing.properties" />
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/service-html/WEB-INF" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${service_html_webinf_dir}" erroronmissingdir="false">
+          <include name="*.xml" />
+        </fileset>
+      </resources>
+    </copy>
+
+	<copy preservelastmodified="true" todir="${temp_dir}/apache-tomcat/conf" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${tomcat_dir}/conf" erroronmissingdir="false">
+        </fileset>
+      </resources>
+    </copy>
+	
+    <copy preservelastmodified="true" todir="${temp_dir}/apache-tomcat-conf" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${tomcat_conf_dir}" erroronmissingdir="false">
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/config" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${installation_root}/config" erroronmissingdir="false">
+          <include name="*.properties" />
+        </fileset>
+      </resources>
+    </copy>
+
+    <copy preservelastmodified="true" todir="${temp_dir}/released" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${released_dir}" erroronmissingdir="false">
+          <include name="**/*.log*" />
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/importd" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${importd_dir}" erroronmissingdir="false">
+          <include name="**/*.log*" />
+        </fileset>
+      </resources>
+    </copy>
+
+    <copy preservelastmodified="true" todir="${temp_dir}/tools" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${tools_dir}" erroronmissingdir="false">
+          <include name="*.log*" />
+          <include name="installation.properties*" />
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/importd/conf" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${importd_dir}/conf" erroronmissingdir="false">
+          <include name="*.xml*" />
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/auth-service/WEB-INF/classes" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${auth_service_dir}/WEB-INF/classes" erroronmissingdir="false">
+          <include name="*.yml*" />
+        </fileset>
+      </resources>
+    </copy>
+	
+	<copy preservelastmodified="true" todir="${temp_dir}/auth-service/" flatten="false" failonerror="false">
+      <resources>
+        <fileset dir="${auth_service_dir}/" erroronmissingdir="false">
+          <include name="*.xml*" />
+        </fileset>
+      </resources>
+    </copy>
+	
+    <copy preservelastmodified="true" file="${importd_dir}/importd.properties" tofile="${temp_dir}/importd/importd.properties"/>
+    <copy preservelastmodified="true" file="${released_dir}/released.properties" todir="${temp_dir}/released" failonerror="false"/>
+    <copy preservelastmodified="true" file="${persistence_dir}/db-conf\database.properties" todir="${temp_dir}/persistence/db/" failonerror="false"/>
+	<copy preservelastmodified="true" file="${tomcat_dir}/RELEASE-NOTES" todir="${temp_dir}/apache-tomcat/" failonerror="false"/>
+    <copy preservelastmodified="true" file="${installation_root}/version.properties" todir="${temp_dir}" failonerror="false"/>
+
+    <tstamp>
+      <format property="TODAY_MY" pattern="yyyyMMdd_HHmmss"  locale="en,US" />
+    </tstamp>
+
+    <zip destfile="${logs_dir}/report_${TODAY_MY}.zip" basedir="${temp_dir}/" />
+
+    <delete dir="${temp_dir}" />
+  </target>
+
+
+  <target name="collect_info" depends="-init,-prepare_temp_directory,-copy_files">
+
+  </target>
+</project>
