@@ -17,8 +17,9 @@ function release(context) {
 
   (function () {
     const document = context.getReleaseItem();
-    const fileId = document.getField("file_id").value;
-    const file = new File("c:\\InfoInputSolution\\exports\\" + fileId + ".pdf");
+    const releaseItemId = document.getId();
+    const outputFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES)[releaseItemId];
+    const file = new File(outputFiles[0]);
 
     if (!file.exists()) {
       var errorMessage = "le fichier à exporter n'existe pas";

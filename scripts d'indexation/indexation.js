@@ -122,8 +122,6 @@ function unload(batch) { }
  */
 function preProcess(node) {
   node.fields["libelle"].value = getRandomGuid();
-  node.fields["file_id"].value = getRandomGuid();
-  out.println("fileId: " + node.fields["file_id"].value);
   const familles = [];
   for (var index = 0; index < this.familles.length; index++) {
     var famille = this.familles[index];
