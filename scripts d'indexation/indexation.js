@@ -202,9 +202,9 @@ function familleChanged(field) {
         code: familleDocument.code
       };
   })();
-  const isFamilleNull = familleDocument === null;
-  node.fields['cote'].readOnly = isFamilleNull;
-  if (isFamilleNull) {
+  const selectedFamilleExists = familleDocument !== null;
+  node.fields['cote'].readOnly = !selectedFamilleExists;
+  if (!selectedFamilleExists) {
     return;
   }
   this.familleDocumentCode = familleDocument.code;
@@ -235,9 +235,9 @@ function coteChanged(field) {
         code: coteDocument.code
       };
   })();
-  const isCoteNull = coteDocument === null;
-  node.fields['type_document'].readOnly = isCoteNull;
-  if (isCoteNull) {
+  const selectedCoteExists = coteDocument !== null;
+  node.fields['type_document'].readOnly = !selectedCoteExists;
+  if (!selectedCoteExists) {
     return;
   }
   this.coteDocumentCode = coteDocument.code;
@@ -256,8 +256,9 @@ function type_documentChanged(field) {
   const typeDocument = this.typesDocument
     .find(function (typeDocument) {
       return areStringsEqualsCaseInsensitive(typeDocument.libelle, field.value);
-    })
-  this.typeDocumentCode = typeDocument !== undefined ? typeDocument.code : null;
+    });
+  const selectedTypeDocumentExists = typeDocument !== undefined;
+  this.typeDocumentCode = selectedTypeDocumentExists ? typeDocument.code : null;
 }
 
 function date_documentChanged(field) {
