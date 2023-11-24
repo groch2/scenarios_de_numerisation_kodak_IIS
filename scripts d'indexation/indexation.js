@@ -173,7 +173,6 @@ function fieldFocusLost(field, index) {
   return true;
 }
 
-fieldsChangeHandledIndividually = ["famille", "cote", "type_document", "date_document"];
 /**
  * Called every time the value of a field is changed.
  * You may use the markValid() and markInvalid() methods to mark whether the
@@ -181,13 +180,7 @@ fieldsChangeHandledIndividually = ["famille", "cote", "type_document", "date_doc
  * 
  * For multivalued fields <code>index</code> is the index of the value loosing the focus, for normal fields it is always 0.
  */
-function fieldChanged(field) {
-  if (
-    this.fieldsChangeHandledIndividually.find(
-      function (item) { return areStringsEqualsCaseInsensitive(field.name, item) }) !== undefined) {
-    return;
-  }
-}
+function fieldChanged(field) { }
 
 function familleChanged(field) {
   ['cote', 'type_document']
