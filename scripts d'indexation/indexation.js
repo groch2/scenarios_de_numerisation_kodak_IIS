@@ -1,26 +1,16 @@
-importPackage(Packages.com.imagetrust.tc.model.object);
 importPackage(Packages.scanserver.released.rdpi);
 importPackage(Packages.scancommon.model.release);
-importClass(java.io.OutputStream);
-importClass(java.io.OutputStreamWriter);
-importClass(javax.net.ssl.HttpsURLConnection);
-importClass(java.io.IOException);
-importClass(java.io.BufferedReader);
-importClass(java.lang.StringBuilder);
-importClass(java.io.InputStreamReader);
-importClass(java.security.MessageDigest);
-importClass(javax.xml.bind.DatatypeConverter);
-importClass(java.io.File);
-importClass(java.util.concurrent.TimeUnit);
-importClass(java.io.PrintWriter);
-importClass(java.io.FileInputStream);
-importPackage(java.io);
-importPackage(java.net);
+importPackage(Packages.com.imagetrust.tc.model.object);
 importPackage(javax.net.ssl);
-importPackage(java.lang);
-importPackage(java.security);
-importPackage(javax.xml.bind);
-importPackage(java.util);
+
+importClass(java.io.BufferedReader);
+importClass(java.io.File);
+importClass(java.io.FileInputStream);
+importClass(java.io.InputStreamReader);
+importClass(java.io.OutputStreamWriter);
+importClass(java.io.PrintWriter);
+importClass(java.lang.StringBuilder);
+importClass(java.net.URL);
 
 /**
  * Indexing Script Template
