@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Workflow startStep="Scan" description="A simple workflow where Scanning is followed by Indexing and then Export" name="Scan-Index-Export" xmlns="http://imagetrust.com/workflow3">
-    <LinearStep next="Extract" security="USER" activity="com.imagetrust.batch.create" displayName="Scan" name="Scan"/>
+    <LinearStep next="Index" security="USER" activity="com.imagetrust.batch.create" displayName="Scan" name="Scan"/>
     <LinearStep next="Index" security="SYSTEM" activity="com.imagetrust.extract" displayName="Extract" name="Extract"/>
     <LinearStep next="Export" security="USER" activity="com.imagetrust.index" displayName="Index" name="Index"/>
     <LinearStep security="SYSTEM" activity="com.imagetrust.release" displayName="Export" name="Export"/>
