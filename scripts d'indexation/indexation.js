@@ -261,10 +261,6 @@ function type_documentChanged(field) {
   this.typeDocumentCode = selectedTypeDocumentExists ? typeDocument.code : null;
 }
 
-function date_documentChanged(field) {
-  debug.print("date document: " + field.value);
-}
-
 /**
  * 
  * Called whenever the structure of a table is changed through the indexing UI (e.g. inserting/deleting rows).
