@@ -82,8 +82,9 @@ function batchStructureChanged(batch) { }
  * };
  *
  */
+importPackage(com.imagetrust.tc.model.object);
 function preScan(batch) {
-
+  return { DetectBarcodeTypesWhileScanning: [BarcodeType.Code_39] };
 }
 
 /**
@@ -158,15 +159,11 @@ function postScan(batch) { }
  *
  */
 function pageArrived(_, page) {
-  debug.print("test debug.print - pageArrived");
-  for (var i in page.barcodeData) {
-    var bcd = page.barcodeData[i];
-    debug.print("barcode " + i + ", value: " + bcd.value);
-    if (bcd.value != null && i == 1 && bcd.value == "GECO01-SEPPLI-V1") {
-      return {
-        Separation: Const.SepNewFolder,
-        Retention: Const.KeepImage
-      }
+  if (page.barcodeData.length > 0 && areStringsEqualsCaseInsensitive(page.barcodeData[0].value, "GECO1-SEPPLI-V1")) {
+    debug.print("barcode separateur de pli GECO 1 détecté");
+    return {
+      Separation: Const.SepNewDoc,
+      Retention: Const.DeleteImage
     }
   }
 }
