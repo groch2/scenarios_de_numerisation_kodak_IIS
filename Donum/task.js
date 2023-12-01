@@ -28,12 +28,14 @@
  *   NOTICE: This method (setInPlaceFileTypes) is not supported in HTML-Client
  * 
  */
-function batchCreated(batch) { }
+function batchCreated(batch) {
+}
 
 /**
  * This function is called when a Batch is loaded on the client.
  */
-function batchLoaded(batch) { }
+function batchLoaded(batch) {
+}
 
 /**
  * This function is called when a Batch is unloaded on the client.
@@ -52,7 +54,8 @@ function batchLoaded(batch) { }
  *     If the current Batch is closed, function batchUnloaded will be called
  *     with reason UnloadReason.Close and actionFollows ActionType.NewBatch.
  */
-function batchUnloaded(batch, reason, actionFollows) { }
+function batchUnloaded(batch, reason, actionFollows) {
+}
 
 /**
  * Called every time the structure of the Batch changes.
@@ -61,7 +64,8 @@ function batchUnloaded(batch, reason, actionFollows) { }
  * it is called more than once, since the page is first removed from the 
  * first document and then inserted to the other).
  */
-function batchStructureChanged(batch) { }
+function batchStructureChanged(batch) {
+}
 
 /**
  * Called before starting a scan operation
@@ -82,14 +86,16 @@ function batchStructureChanged(batch) { }
  * };
  *
  */
+importPackage(com.imagetrust.tc.model.object);
 function preScan(batch) {
-
+  return { DetectBarcodeTypesWhileScanning: [BarcodeType.Code_39] };
 }
 
 /**
  * Called after a scan operation finishes
  */
-function postScan(batch) { }
+function postScan(batch) {
+}
 
 /**
  * This function is called before the pageScanned() function and before the
@@ -157,15 +163,21 @@ function postScan(batch) { }
  *   }
  *
  */
-function pageArrived(_, page) {
-  debug.print("test debug.print - pageArrived");
+function pageArrived(batch, page) {
   for (var i in page.barcodeData) {
     var bcd = page.barcodeData[i];
-    debug.print("barcode " + i + ", value: " + bcd.value);
-    if (bcd.value != null && i == 1 && bcd.value == "GECO01-SEPPLI-V1") {
-      return {
-        Separation: Const.SepNewFolder,
-        Retention: Const.KeepImage
+    if (bcd.value != null) {
+      if (i == 1 && bcd.value == 'DONU1-SEPPLI-V3') {
+        return {
+          Separation: Const.SepNewFolder,
+          Retention: Const.KeepImage
+        }
+      }
+      if (i == 1 && bcd.value == 'DONU1-SEPDOC-V3') {
+        return {
+          Separation: Const.SepNewDoc,
+          Retention: Const.KeepImage
+        }
       }
     }
   }
@@ -191,7 +203,8 @@ function pageArrived(_, page) {
  * document: the current document that the page is added to
  * page: the current page that was just scanned
  */
-function pageScanned(batch, document, page) { }
+function pageScanned(batch, document, page) {
+}
 
 /**
  * This function is called when the user tries to close a batch. It can be used in
@@ -212,7 +225,8 @@ function pageScanned(batch, document, page) { }
  *     AllowIncompleteIndexing: true
  *   }
  */
-function batchCanBeClosed(batch) { }
+function batchCanBeClosed(batch) {
+}
 
 /**
  * This function is called just before the batch is about to be closed or suspended 
@@ -267,7 +281,8 @@ function batchCanBeClosed(batch) { }
  *    }
  *  }
  */
-function batchWillClose(batch, suspend, closeContext) { }
+function batchWillClose(batch, suspend, closeContext) {
+}
 
 /**
  * This function is called each time the local (client-embedded) OCR engine completes
@@ -322,12 +337,14 @@ function batchWillClose(batch, suspend, closeContext) { }
  *   isCurrentIndexingNode: a boolean value that is true when the given document
  *     is the node that is currently being indexed, false otherwise.
  */
-function fieldOcrCompleted(document, field, extractionData, maxConfidenceData, isCurrentIndexingNode) { }
+function fieldOcrCompleted(document, field, extractionData, maxConfidenceData, isCurrentIndexingNode) {
+}
 
 /**
  * This function is called whenever the OCR engine start or stops background OCR work.
  */
-function zoneOcrInProgress(working) { }
+function zoneOcrInProgress(working) {
+}
 
 /**
  * Called whenever index mode start/finished on the client. 
@@ -343,7 +360,8 @@ function zoneOcrInProgress(working) { }
  *   start: true if index mode starts, false if it ends
  *   batch: the current batch
  */
-function setIndexMode(start, batch) { }
+function setIndexMode(start, batch) {
+}
 
 /**
  * Called whenever indexing starts for a node. This function is called before
@@ -356,7 +374,8 @@ function setIndexMode(start, batch) { }
  * Parameters:
  *   node: the node that is about to be indexed
  */
-function startNodeIndexing(node) { }
+function startNodeIndexing(node) {
+}
 
 /**
  * Called whenever the indexing ends for a node. This function is called after
@@ -379,7 +398,8 @@ function startNodeIndexing(node) { }
  *     which case all changes are reverted, so there is no reason to not stop
  *     indexing). 
  */
-function endNodeIndexing(node, forceEnd) { }
+function endNodeIndexing(node, forceEnd) {
+}
 
 /**
  * Called each time a context-menu, or another action that may modify the batch (e.g
@@ -400,7 +420,8 @@ function endNodeIndexing(node, forceEnd) { }
  *   if (actionType == 'DuplicatePages')
  *     return false;
  */
-function isContextActionEnabled(actionType, actionProperties, actionNode, selectedNodes) { }
+function isContextActionEnabled(actionType, actionProperties, actionNode, selectedNodes) {
+}
 
 /**
  * This function allows the apply of custom logic before a file is imported from the file system to the application.
@@ -422,4 +443,5 @@ function isContextActionEnabled(actionType, actionProperties, actionNode, select
  * If the file inspection and/or the extension extraction from the file name fail then the file
  * will not be imported.
  */
-function checkFileAllowed(mimeType, extension, fileSize) { }
+function checkFileAllowed(mimeType, extension, fileSize) {
+}
