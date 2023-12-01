@@ -129,6 +129,9 @@ function preProcess(node) {
       httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
     ).codeUtilisateur.trim();
   })();
+
+  node.fields['cote'].readOnly = true;
+  node.fields['type_document'].readOnly = true;
 }
 
 /**
@@ -400,10 +403,7 @@ function getFieldNamespace(step, node, field) { }
  *  true: if you want the default behavior to be executed (default return value)
  *  false: if you do not want the default behavior to be executed
  */
-function fieldOcrCompleted(field, extractionData, maxConfidenceData) {
-  debug.print("fieldOcrCompleted " + field + " debug print");
-  out.println("fieldOcrCompleted " + field + " out print");
-}
+function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
 
 /**
  * This method is called every time a key is pressed and the focus
