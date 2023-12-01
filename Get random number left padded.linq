@@ -1,5 +1,11 @@
 <Query Kind="Statements" />
 
-const int exponentOf10 = 6;
-var powOf10 = (int)Math.Pow(10, exponentOf10);
-new Random().Next(powOf10).ToString().PadLeft(exponentOf10, '0').Dump();
+var dice = new Random();
+Enumerable
+	.Range(0, 10)
+	.Select(_ => dice.Next(0, 10))
+	.Aggregate(
+		new StringBuilder(),
+		(state, item) => state.Append(item),
+		state => state.ToString())
+	.Dump();
