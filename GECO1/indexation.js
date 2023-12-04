@@ -132,8 +132,15 @@ function preProcess(node) {
     ).codeUtilisateur.trim();
   })();
 
-  node.fields['cote'].readOnly = true;
-  node.fields['type_document'].readOnly = true;
+  const tritpyqueFields = ['famille', 'cote', 'type_document'];
+  for (var index = 0; index < tritpyqueFields.length; index++) {
+    if (node.fields[tritpyqueFields[index]].value === "") {
+      for (index += 1; index < tritpyqueFields.length; index++) {
+        node.fields[tritpyqueFields[index]].readOnly = true;
+      }
+      break;
+    }
+  }
 }
 
 /**
