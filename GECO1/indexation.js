@@ -161,7 +161,16 @@ function postProcess(node) {
     "categoriesFamille": this.familleDocumentCode,
     "categoriesCote": this.coteDocumentCode,
     "categoriesTypeDocument": this.typeDocumentCode,
-    "canalId": getDocumentFieldValueByfieldName("canal_id"),
+    "canalId": "10",
+    "sens": "RECEPTION",
+    "nature": "ORIGINAL",
+    "heureNumerisation": (function () {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, "0");
+      const minutes = now.getMinutes().toString().padStart(2, "0");
+      const seconds = now.getSeconds().toString().padStart(2, "0");
+      return hours + minutes + seconds;
+    })(),
   });
 }
 
@@ -464,8 +473,4 @@ function fillDropDownField(dropDownField, tuplesList) {
     var tuple = tuplesList[index];
     dropDownField.addOption(tuple[0], tuple[1]);
   }
-}
-
-function getRandomGuid() {
-  return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }

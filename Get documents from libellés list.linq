@@ -40,6 +40,10 @@ var documents =
 			})
 		.OrderBy(document => document.DocumentId);
 documents.Dump();
+var documentsIdList = string.Join(Environment.NewLine, documents.Select(document => document.DocumentId));
+File.WriteAllText(
+	path: @"C:\Users\deschaseauxr\Documents\Kodak Info Input Solution\GECO1\documentIdList.txt",
+	contents: documentsIdList);
 
 /*
 AssigneDepartement
