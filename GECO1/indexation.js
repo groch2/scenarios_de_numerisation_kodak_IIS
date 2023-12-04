@@ -111,7 +111,6 @@ function unload(batch) { }
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
-  node.fields["libelle"].value = getRandomGuid();
   const familles = [];
   for (var index = 0; index < this.familles.length; index++) {
     var famille = this.familles[index];
@@ -121,7 +120,10 @@ function preProcess(node) {
   node.fields["nom_fichier"].value = node.getName();
   node.fields["date_document"].value = (function () {
     const today = new Date();
-    return today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear();
+    const day = today.getDate().toString().padStart(2, "0");
+    const month = (today.getMonth() + 1).toString().padStart(2, "0");
+    const year = today.getFullYear();
+    return day + "/" + month + "/" + year;
   })();
   node.fields["depose_par"].value = (function () {
     const userName = loggedUser.getUsername();
