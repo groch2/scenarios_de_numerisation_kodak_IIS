@@ -160,7 +160,6 @@ function postScan(batch) { }
  */
 function pageArrived(_, page) {
   if (page.barcodeData.length > 0 && areStringsEqualsCaseInsensitive(page.barcodeData[0].value, "GECO1-SEPPLI-V1")) {
-    debug.print("barcode separateur de pli GECO 1 détecté");
     return {
       Separation: Const.SepNewDoc,
       Retention: Const.DeleteImage
