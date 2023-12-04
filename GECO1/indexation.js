@@ -148,9 +148,21 @@ function postProcess(node) {
       coteDocumentCode: this.coteDocumentCode,
       typeDocumentCode: this.typeDocumentCode
     }));
-  node.fields["famille_code"].value = this.familleDocumentCode;
-  node.fields["cote_code"].value = this.coteDocumentCode;
-  node.fields["type_document_code"].value = this.typeDocumentCode;
+
+  const documentFields = node.getFields();
+  function getDocumentFieldValueByfieldName(fieldName) {
+    return documentFields[fieldName].getValue();
+  }
+  node.fields["jsonDocumentMetadata"].value = JSON.stringify({
+    "libelle": getDocumentFieldValueByfieldName("libelle"),
+    "deposePar": getDocumentFieldValueByfieldName("depose_par"),
+    "dateDocument": getDocumentFieldValueByfieldName("date_document"),
+    "fichierNom": getDocumentFieldValueByfieldName("nom_fichier"),
+    "categoriesFamille": this.familleDocumentCode,
+    "categoriesCote": this.coteDocumentCode,
+    "categoriesTypeDocument": this.typeDocumentCode,
+    "canalId": getDocumentFieldValueByfieldName("canal_id"),
+  });
 }
 
 /**

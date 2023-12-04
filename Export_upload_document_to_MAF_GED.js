@@ -118,26 +118,12 @@ function release(context) {
   }
 
   function finalizeDocumentUpload({ fileUploadGuid: fileUploadGuid, documentFields: documentFields, fileSize: fileSize }) {
-    const canal_id = documentFields["canal_id"].getValue();
-    const depose_par = documentFields["depose_par"].getValue();
-    const date_document = documentFields["date_document"].getValue();
-    const libelle = documentFields["libelle"].getValue();
-    const nom_fichier = documentFields["nom_fichier"].getValue();
-    const famille_code = documentFields["famille_code"].getValue();
-    const cote_code = documentFields["cote_code"].getValue();
-    const type_document_code = documentFields["type_document_code"].getValue();
-    const jsonDocumentMetadata = JSON.stringify({
-      "fileId": fileUploadGuid,
-      "libelle": libelle,
-      "deposePar": depose_par,
-      "dateDocument": date_document,
-      "fichierNom": nom_fichier,
-      "fichierTaille": fileSize,
-      "categoriesFamille": famille_code,
-      "categoriesCote": cote_code,
-      "categoriesTypeDocument": type_document_code,
-      "canalId": canal_id
-    });
+    const jsonDocumentMetadata = (function () {
+      const jsonDocumentMetadata = JSON.parse(documentFields["jsonDocumentMetadata"].getValue());
+      jsonDocumentMetadata["fileId"] = fileUploadGuid;
+      jsonDocumentMetadata["fichierTaille"] = fileSize;
+      return JSON.stringify(jsonDocumentMetadata);
+    })();
     out.println("jsonDocumentMetadata :");
     out.println(jsonDocumentMetadata);
 
