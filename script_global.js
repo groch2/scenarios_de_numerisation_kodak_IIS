@@ -494,14 +494,24 @@ function areStringsEqualsCaseInsensitive(a, b) {
   return compareStringsCaseInsensitive(a, b) === 0;
 }
 
-Array.prototype.find = function (predicate) {
-  for (var i = 0; i < this.length; i++) {
-    if (predicate(this[i])) {
-      return this[i];
+// https://github.com/jsPolyfill/Array.prototype.find/blob/master/find.js
+Array.prototype.find = Array.prototype.find || function (callback) {
+  if (this === null) {
+    throw new TypeError('Array.prototype.find called on null or undefined');
+  } else if (typeof callback !== 'function') {
+    throw new TypeError('callback must be a function');
+  }
+  var list = Object(this);
+  // Makes sures is always has an positive integer as length.
+  var length = list.length >>> 0;
+  var thisArg = arguments[1];
+  for (var i = 0; i < length; i++) {
+    var element = list[i];
+    if (callback.call(thisArg, element, i, list)) {
+      return element;
     }
   }
-  return undefined;
-}
+};
 
 /**
  * String.prototype.replaceAll() polyfill
@@ -515,6 +525,28 @@ if (!String.prototype.replaceAll) {
       Object.prototype.toString.call(str).toLowerCase() === '[object regexp]' ?
         this.replace(str, newStr) :
         this.replace(new RegExp(str, 'g'), newStr));
+  };
+}
+
+/**
+ * String.prototype.padStart() polyfill
+ * https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+ */
+if (!String.prototype.padStart) {
+  String.prototype.padStart = function padStart(targetLength, padString) {
+    targetLength = targetLength >> 0; //truncate if number or convert non-number to 0;
+    padString = String((typeof padString !== 'undefined' ? padString : ' '));
+    if (this.length > targetLength) {
+      return String(this);
+    }
+    else {
+      targetLength = targetLength - this.length;
+      if (targetLength > padString.length) {
+        padString += padString.repeat(targetLength / padString.length); //append to original to ensure we are longer than needed
+      }
+      return padString.slice(0, targetLength) + String(this);
+    }
   };
 }
 
@@ -533,8 +565,4 @@ function httpGetString(url) {
   bufferedReader.close();
   urlConnection.disconnect();
   return stringBuffer.toString();
-}
-
-function getRandomGuid() {
-  return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
 }

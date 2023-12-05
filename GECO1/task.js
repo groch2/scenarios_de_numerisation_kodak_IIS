@@ -188,8 +188,9 @@ function pageArrived(_, page) {
  * page: the current page that was just scanned
  */
 function pageScanned(_, document, page) {
-  if (page.barcodeData.length > 0) {
-    document.setProperty("barcode", page.barcodeData[0].value);
+  const gecoBarCode = page.barcodeData.find(function (barcodeData) { return /^GE002-/.test(barcodeData.value) });
+  if (gecoBarCode) {
+    document.setProperty("gecoBarCode", gecoBarCode.value);
   }
 }
 

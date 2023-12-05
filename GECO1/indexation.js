@@ -141,6 +141,16 @@ function preProcess(node) {
       break;
     }
   }
+  (function () {
+    const gecoBarCode = node.getProperty("gecoBarCode");
+    const documentId = /\d+$/.exec(gecoBarCode)[0];
+    const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
+    const queryResult = new DbServer('MAF BDD').query(query)[0];
+    compteId = queryResult[0];
+    const contratId = queryResult[1];
+    const contratLettreCle = queryResult[2];
+    numeroContrat = contratId + contratLettreCle;
+  })();
 }
 
 /**
@@ -179,7 +189,8 @@ function postProcess(node) {
       return hours + minutes + seconds;
     })(),
   };
-  jsonDocumentMetadata.codeBarreId = node.getProperty("barcode");
+  jsonDocumentMetadata.compteId = compteId;
+  jsonDocumentMetadata.numeroContrat = numeroContrat;
   node.fields["jsonDocumentMetadata"].value = JSON.stringify(jsonDocumentMetadata);
 }
 
