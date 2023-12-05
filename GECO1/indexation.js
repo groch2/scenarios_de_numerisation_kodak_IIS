@@ -88,11 +88,7 @@ importClass(java.net.URL);
  * This method is called every time the client gets into Indexing mode (not 
  * when Indexing starts, but when a script is loaded, as needed).
  */
-function load() {
-  this.familles = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Familles?%24select=familleDocumentId%2Ccode%2Clibelle&%24filter=isActif%20eq%20true")).value;
-  this.cotes = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/Cotes?%24select=coteDocumentId%2Ccode%2Clibelle%2CfamilleDocumentId&%24filter=isActif%20eq%20true")).value;
-  this.typesDocument = JSON.parse(httpGetString("https://api-ged-intra.int.maf.local/v2/TypesDocuments?%24select=typeDocumentId%2Ccode%2Clibelle%2CcoteDocumentId&%24filter=isActif%20eq%20true")).value;
-}
+function load() { }
 
 /**
  * Called when ending indexing operation.
@@ -111,12 +107,6 @@ function unload(batch) { }
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
-  const familles = [];
-  for (var index = 0; index < this.familles.length; index++) {
-    var famille = this.familles[index];
-    familles.push(["" + famille.familleDocumentId, famille.libelle]);
-  }
-  fillDropDownField(node.fields['famille'], familles);
   node.fields["nom_fichier"].value = node.getName();
   node.fields["date_document"].value = (function () {
     const today = new Date();
@@ -132,24 +122,20 @@ function preProcess(node) {
     ).codeUtilisateur.trim();
   })();
 
-  const triptyqueFields = ["famille", "cote", "type_document"];
-  for (var index = 0; index < triptyqueFields.length; index++) {
-    if (node.fields[triptyqueFields[index]].value === "") {
-      for (index += 1; index < triptyqueFields.length; index++) {
-        node.fields[triptyqueFields[index]].readOnly = true;
-      }
-      break;
-    }
-  }
   (function () {
     const gecoBarCode = node.getProperty("gecoBarCode");
     const documentId = /\d+$/.exec(gecoBarCode)[0];
-    const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
+    const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
     const queryResult = new DbServer('MAF BDD').query(query)[0];
     compteId = queryResult[0];
     const contratId = queryResult[1];
     const contratLettreCle = queryResult[2];
     numeroContrat = contratId + contratLettreCle;
+    const documentDescription = queryResult[3];
+    [typeDocumentCode, coteDocumentCode] =
+      /^Questionnaire/i.test(documentDescription) ?
+        (["QUESTIONNAIRE TECHNIQUE", "SOUSCRIPTION"]) :
+        (["CONDITIONS PARTICULIERES", "PIECES CONTRACTUELLES"]);
   })();
 
   return { MoveToField: "libelle" };
@@ -159,15 +145,6 @@ function preProcess(node) {
  * Called after finishing indexing on a node of this class
  */
 function postProcess(node) {
-  debug.print("fonction postProcess");
-  out.println("tryptique sélectionné :");
-  out.println(
-    JSON.stringify({
-      familleDocumentCode: this.familleDocumentCode,
-      coteDocumentCode: this.coteDocumentCode,
-      typeDocumentCode: this.typeDocumentCode
-    }));
-
   const documentFields = node.getFields();
   function getDocumentFieldValueByfieldName(fieldName) {
     return documentFields[fieldName].getValue();
@@ -177,7 +154,7 @@ function postProcess(node) {
     "deposePar": getDocumentFieldValueByfieldName("depose_par"),
     "dateDocument": getDocumentFieldValueByfieldName("date_document"),
     "fichierNom": getDocumentFieldValueByfieldName("nom_fichier"),
-    "categoriesFamille": this.familleDocumentCode,
+    "categoriesFamille": "DOCUMENTS CONTRAT",
     "categoriesCote": this.coteDocumentCode,
     "categoriesTypeDocument": this.typeDocumentCode,
     "canalId": "10",
@@ -218,9 +195,7 @@ function fieldFocusGained(field, index) { }
  *  false: forces focus to remain to this field
  *  Const.MoveToNextNode: index next node
  */
-function fieldFocusLost(field, index) {
-  return true;
-}
+function fieldFocusLost(field, index) { return true; }
 
 /**
  * Called every time the value of a field is changed.
@@ -230,85 +205,6 @@ function fieldFocusLost(field, index) {
  * For multivalued fields <code>index</code> is the index of the value loosing the focus, for normal fields it is always 0.
  */
 function fieldChanged(field) { }
-
-function familleChanged(field) {
-  ['cote', 'type_document']
-    .forEach(function (field) {
-      node.fields[field].clearOptions();
-      node.fields[field].value = "";
-    });
-  node.fields['type_document'].readOnly = true;
-
-  const familleDocument = (function () {
-    const familleDocument = this.familles
-      .find(function (familleDocument) {
-        return areStringsEqualsCaseInsensitive(familleDocument.libelle, field.value);
-      });
-    return familleDocument === undefined ?
-      null :
-      {
-        familleDocumentId: familleDocument.familleDocumentId,
-        code: familleDocument.code
-      };
-  })();
-  const selectedFamilleExists = familleDocument !== null;
-  node.fields['cote'].readOnly = !selectedFamilleExists;
-  if (!selectedFamilleExists) {
-    return;
-  }
-  this.familleDocumentCode = familleDocument.code;
-  const cotesOfSelectedFamille =
-    this.cotes.filter(
-      function (coteDocument) {
-        return coteDocument.familleDocumentId === familleDocument.familleDocumentId;
-      }).map(
-        function (coteDocument) {
-          return [coteDocument.coteDocumentId.toString(), coteDocument.libelle];
-        });
-  fillDropDownField(node.fields['cote'], cotesOfSelectedFamille);
-}
-
-function coteChanged(field) {
-  node.fields['type_document'].clearOptions();
-  node.fields['type_document'].value = "";
-
-  const coteDocument = (function () {
-    const coteDocument = this.cotes
-      .find(function (coteDocument) {
-        return areStringsEqualsCaseInsensitive(coteDocument.libelle, field.value);
-      })
-    return coteDocument === undefined ?
-      null :
-      {
-        coteDocumentId: coteDocument.coteDocumentId,
-        code: coteDocument.code
-      };
-  })();
-  const selectedCoteExists = coteDocument !== null;
-  node.fields['type_document'].readOnly = !selectedCoteExists;
-  if (!selectedCoteExists) {
-    return;
-  }
-  this.coteDocumentCode = coteDocument.code;
-  const typesOfSelectedCote =
-    this.typesDocument.filter(
-      function (typeDocument) {
-        return typeDocument.coteDocumentId === coteDocument.coteDocumentId;
-      }).map(
-        function (type) {
-          return [type.coteDocumentId.toString(), type.libelle];
-        });
-  fillDropDownField(node.fields['type_document'], typesOfSelectedCote);
-}
-
-function type_documentChanged(field) {
-  const typeDocument = this.typesDocument
-    .find(function (typeDocument) {
-      return areStringsEqualsCaseInsensitive(typeDocument.libelle, field.value);
-    });
-  const selectedTypeDocumentExists = typeDocument !== undefined;
-  this.typeDocumentCode = selectedTypeDocumentExists ? typeDocument.code : null;
-}
 
 /**
  * 
@@ -488,12 +384,3 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  *         (this is the default value, e.g. if you don't return something).
  */
 function keyEvent(evt) { }
-
-function fillDropDownField(dropDownField, tuplesList) {
-  tuplesList.sort(function (a, b) { return compareStringsCaseInsensitive(a[1], b[1]); });
-  dropDownField.clearOptions();
-  for (var index = 0; index < tuplesList.length; index++) {
-    var tuple = tuplesList[index];
-    dropDownField.addOption(tuple[0], tuple[1]);
-  }
-}

@@ -33,9 +33,6 @@ var documents =
 		.Select(document =>
 			new {
 				document.Libelle,
-				Famille = document.CategoriesFamille,
-				Cote = document.CategoriesCote,
-				TypeDoc = document.CategoriesTypeDocument,
 				document.DocumentId,
 				document.CanalPrincipal,
 				document.CanalSecondaire,
