@@ -190,6 +190,7 @@ function postProcess(node) {
       const seconds = now.getSeconds().toString().padStart(2, "0");
       return hours + minutes + seconds;
     })(),
+    "fichierNombrePages": node.pages.length,
   };
   jsonDocumentMetadata.compteId = compteId;
   jsonDocumentMetadata.numeroContrat = numeroContrat;
