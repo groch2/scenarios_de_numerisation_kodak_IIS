@@ -160,7 +160,7 @@ function postProcess(node) {
   function getDocumentFieldValueByfieldName(fieldName) {
     return documentFields[fieldName].getValue();
   }
-  node.fields["jsonDocumentMetadata"].value = JSON.stringify({
+  const jsonDocumentMetadata = {
     "libelle": getDocumentFieldValueByfieldName("libelle"),
     "deposePar": getDocumentFieldValueByfieldName("depose_par"),
     "dateDocument": getDocumentFieldValueByfieldName("date_document"),
@@ -178,7 +178,9 @@ function postProcess(node) {
       const seconds = now.getSeconds().toString().padStart(2, "0");
       return hours + minutes + seconds;
     })(),
-  });
+  };
+  jsonDocumentMetadata.codeBarreId = node.getProperty("barcode");
+  node.fields["jsonDocumentMetadata"].value = JSON.stringify(jsonDocumentMetadata);
 }
 
 /**

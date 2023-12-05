@@ -187,7 +187,11 @@ function pageArrived(_, page) {
  * document: the current document that the page is added to
  * page: the current page that was just scanned
  */
-function pageScanned(batch, document, page) { }
+function pageScanned(_, document, page) {
+  if (page.barcodeData.length > 0) {
+    document.setProperty("barcode", page.barcodeData[0].value);
+  }
+}
 
 /**
  * This function is called when the user tries to close a batch. It can be used in
