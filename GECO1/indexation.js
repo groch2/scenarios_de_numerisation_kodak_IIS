@@ -181,18 +181,18 @@ function preProcess(node) {
     numeroContrat +
     (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
   const jsonDocumentMetadata = {
-    "compteId": compteId,
-    "numeroContrat": numeroContrat,
-    "categoriesFamille": famille,
-    "categoriesCote": cote,
-    "categoriesTypeDocument": typeDocument,
     "canalId": "10",
-    "sens": "RECEPTION",
-    "nature": "ORIGINAL",
-    "fichierNombrePages": node.pages.length,
+    "categoriesCote": cote,
+    "categoriesFamille": famille,
+    "categoriesTypeDocument": typeDocument,
+    "compteId": compteId,
     "deposePar": codeUtilisateur,
-    "libelle": libelle,
     "fichierNom": libelle + ".pdf",
+    "fichierNombrePages": node.pages.length,
+    "libelle": libelle,
+    "nature": "ORIGINAL",
+    "numeroContrat": numeroContrat,
+    "sens": "RECEPTION",
   };
   node.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
   node.setProperty("codeUtilisateur", codeUtilisateur);
