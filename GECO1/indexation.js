@@ -117,7 +117,7 @@ function unload(batch) {
     jsonDocumentMetadata.dateDocument =
       jsonDocumentMetadata.dateNumerisation =
       jsonDocumentMetadata.deposeLe = dateNow;
-    const firstWordOfDocumentDescription = node.getProperty("firstWordOfDocumentDescription");
+    const firstWordOfDocumentDescription = document.getProperty("firstWordOfDocumentDescription");
     if (!areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "questionnaire")) {
       jsonDocumentMetadata.qualiteValideeLe =
         jsonDocumentMetadata.traiteLe =
@@ -156,7 +156,9 @@ function preProcess(node) {
  */
 function postProcess(node) {
   debug.print("postProcess");
+  out.println("postProcess");
   debug.print("gecoBarCode: " + node.getProperty("gecoBarCode"));
+  out.println("gecoBarCode: " + node.getProperty("gecoBarCode"));
 }
 
 /**
