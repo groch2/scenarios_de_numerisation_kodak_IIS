@@ -127,7 +127,7 @@ function release(context) {
     fileUploadGuid: fileUploadGuid,
     jsonDocumentMetadata: jsonDocumentMetadata,
     fileSize: fileSize }) {
-    const jsonDocumentMetadata = (function () {
+    jsonDocumentMetadata = (function () {
       jsonDocumentMetadata["fileId"] = fileUploadGuid;
       jsonDocumentMetadata["fichierTaille"] = fileSize;
       return JSON.stringify(jsonDocumentMetadata);
