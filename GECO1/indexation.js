@@ -99,34 +99,10 @@ function load() { }
  * will not have any effect.
  */
 function unload(batch) {
-  const dateNow = (function () {
-    const today = new Date();
-    const day = today.getDate().toString().padStart(2, "0");
-    const month = (today.getMonth() + 1).toString().padStart(2, "0");
-    const year = today.getFullYear();
-    return day + "/" + month + "/" + year;
-  })();
   out.println("indexation unload");
   debug.print("indexation unload");
   out.println("nombre de document: " + batch.documents.length);
   debug.print("nombre de document: " + batch.documents.length);
-  for (var index = 0; index < batch.documents.length; index++) {
-    const document = batch.documents[index];
-    const codeUtilisateur = document.getProperty("codeUtilisateur");
-    const jsonDocumentMetadata = document.getProperty("jsonDocumentMetadata");
-    jsonDocumentMetadata.dateDocument =
-      jsonDocumentMetadata.dateNumerisation =
-      jsonDocumentMetadata.deposeLe = dateNow;
-    const firstWordOfDocumentDescription = document.getProperty("firstWordOfDocumentDescription");
-    if (!areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "questionnaire")) {
-      jsonDocumentMetadata.qualiteValideeLe =
-        jsonDocumentMetadata.traiteLe =
-        jsonDocumentMetadata.vuLe = dateNow;
-      jsonDocumentMetadata.traitePar = codeUtilisateur;
-      jsonDocumentMetadata.vuPar = codeUtilisateur;
-    }
-    document.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
-  }
 }
 
 /**
@@ -159,6 +135,31 @@ function postProcess(node) {
   out.println("postProcess");
   debug.print("gecoBarCode: " + node.getProperty("gecoBarCode"));
   out.println("gecoBarCode: " + node.getProperty("gecoBarCode"));
+  const dateNow = (function () {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, "0");
+    const month = (today.getMonth() + 1).toString().padStart(2, "0");
+    const year = today.getFullYear();
+    return day + "/" + month + "/" + year;
+  })();
+  const codeUtilisateur = node.getProperty("codeUtilisateur");
+  const jsonDocumentMetadata = node.getProperty("jsonDocumentMetadata");
+  jsonDocumentMetadata.dateDocument =
+    jsonDocumentMetadata.dateNumerisation =
+    jsonDocumentMetadata.deposeLe = dateNow;
+  const firstWordOfDocumentDescription = node.getProperty("firstWordOfDocumentDescription");
+  if (!areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "questionnaire")) {
+    jsonDocumentMetadata.qualiteValideeLe =
+      jsonDocumentMetadata.traiteLe =
+      jsonDocumentMetadata.vuLe = dateNow;
+    jsonDocumentMetadata.traitePar = codeUtilisateur;
+    jsonDocumentMetadata.vuPar = codeUtilisateur;
+  }
+  debug.print("postProcess - jsonDocumentMetadata:");
+  debug.print(JSON.stringify(jsonDocumentMetadata));
+  out.println("postProcess - jsonDocumentMetadata:");
+  out.println(JSON.stringify(jsonDocumentMetadata));
+  node.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
 }
 
 /**
