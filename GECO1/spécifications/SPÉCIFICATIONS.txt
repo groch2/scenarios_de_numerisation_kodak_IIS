@@ -1,0 +1,13 @@
+indexation terminée à 17h08
+
+NO_CONTRAT
+NO_ADHERENT (CompteId)
+
+documentId dans envoi document compostage (table dans archeaMAF)
+
+Contrat 232607C signé dans libellé
+ajouté signé si besoin
+
+ne pas tenir compte d'un séparateur en 1ère position dans la numérisation
+
+si le document est préfixé par "Questionnaire": ne pas remplir les données du workflow pour que le document soit considéré comme nouveau dans le workflow DoNum
