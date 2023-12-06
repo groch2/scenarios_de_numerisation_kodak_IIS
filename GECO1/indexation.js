@@ -147,6 +147,7 @@ function preProcess(node) {
   }
   const gecoBarCode = node.getProperty("gecoBarCode");
   setDocumentPropertiesFromGecoBarCode(gecoBarCode);
+  node.fields["barcode"].setValue(gecoBarCode);
 }
 
 /**
