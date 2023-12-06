@@ -17,6 +17,12 @@ function release(context) {
 
   (function () {
     const document = context.getReleaseItem();
+    const jsonDocumentMetadata = document.getProperty("jsonDocumentMetadata");
+    if (!jsonDocumentMetadata) {
+      throw new Exception("les métadonnées du documents pour l'upload vers GED MAF sont introuvables");
+    }
+    out.println("jsonDocumentMetadata :");
+    out.println(jsonDocumentMetadata);
     const file = (function () {
       const releaseItemId = document.getId();
       const outputFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES)[releaseItemId];
@@ -42,7 +48,7 @@ function release(context) {
     const documentId =
       finalizeDocumentUpload({
         fileUploadGuid: fileUploadGuid,
-        documentFields: document.getFields(),
+        jsonDocumentMetadata: jsonDocumentMetadata,
         fileSize: file.length()
       }).documentId;
     file.delete();
@@ -117,15 +123,15 @@ function release(context) {
     return { fileUploadGuid: JSON.parse(responseContent).guidFile };
   }
 
-  function finalizeDocumentUpload({ fileUploadGuid: fileUploadGuid, documentFields: documentFields, fileSize: fileSize }) {
+  function finalizeDocumentUpload({
+    fileUploadGuid: fileUploadGuid,
+    jsonDocumentMetadata: jsonDocumentMetadata,
+    fileSize: fileSize }) {
     const jsonDocumentMetadata = (function () {
-      const jsonDocumentMetadata = JSON.parse(documentFields["jsonDocumentMetadata"].getValue());
       jsonDocumentMetadata["fileId"] = fileUploadGuid;
       jsonDocumentMetadata["fichierTaille"] = fileSize;
       return JSON.stringify(jsonDocumentMetadata);
     })();
-    out.println("jsonDocumentMetadata :");
-    out.println(jsonDocumentMetadata);
 
     const requestURL = gedApiBaseAddress + "FinalizeUpload";
     const urlConnection = new URL(requestURL).openConnection();

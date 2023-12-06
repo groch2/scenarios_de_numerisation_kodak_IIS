@@ -98,7 +98,31 @@ function load() { }
  * case, any changes you make to the Batch from the unload method
  * will not have any effect.
  */
-function unload(batch) { }
+function unload(batch) {
+  const dateNow = (function () {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, "0");
+    const month = (today.getMonth() + 1).toString().padStart(2, "0");
+    const year = today.getFullYear();
+    return day + "/" + month + "/" + year;
+  })();
+  for (var index = 0; index < batch.documents.length; index++) {
+    const document = batch.documents[index];
+    const codeUtilisateur = document.getProperty("codeUtilisateur");
+    const jsonDocumentMetadata = document.getProperty("jsonDocumentMetadata");
+    jsonDocumentMetadata.dateDocument =
+      jsonDocumentMetadata.dateNumerisation =
+      jsonDocumentMetadata.deposeLe = dateNow;
+    const firstWordOfDocumentDescription = node.getProperty("firstWordOfDocumentDescription");
+    if (!areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "questionnaire")) {
+      jsonDocumentMetadata.qualiteValideeLe =
+        jsonDocumentMetadata.traiteLe =
+        jsonDocumentMetadata.vuLe = dateNow;
+      jsonDocumentMetadata.traitePar = codeUtilisateur;
+      jsonDocumentMetadata.vuPar = codeUtilisateur;
+    }
+  }
+}
 
 /**
  * Called before starting indexing on a node of this class.
@@ -107,72 +131,78 @@ function unload(batch) { }
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
-  node.fields["nom_fichier"].value = node.getName();
-  node.fields["date_document"].value = (function () {
-    const today = new Date();
-    const day = today.getDate().toString().padStart(2, "0");
-    const month = (today.getMonth() + 1).toString().padStart(2, "0");
-    const year = today.getFullYear();
-    return day + "/" + month + "/" + year;
-  })();
-  node.fields["depose_par"].value = (function () {
-    const userName = loggedUser.getUsername();
-    return JSON.parse(
-      httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
-    ).codeUtilisateur.trim();
-  })();
-
-  (function () {
-    const gecoBarCode = node.getProperty("gecoBarCode");
-    const documentId = /\d+$/.exec(gecoBarCode)[0];
-    const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
-    const queryResult = new DbServer('MAF BDD').query(query)[0];
-    compteId = queryResult[0];
-    const contratId = queryResult[1];
-    const contratLettreCle = queryResult[2];
-    numeroContrat = contratId + contratLettreCle;
-    const documentDescription = queryResult[3];
-    [typeDocumentCode, coteDocumentCode] =
-      /^Questionnaire/i.test(documentDescription) ?
-        (["QUESTIONNAIRE TECHNIQUE", "SOUSCRIPTION"]) :
-        (["CONDITIONS PARTICULIERES", "PIECES CONTRACTUELLES"]);
-  })();
-
-  return { MoveToField: "libelle" };
+  const codeUtilisateur =
+    (function () {
+      const userName = loggedUser.getUsername();
+      return JSON.parse(
+        httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
+      ).codeUtilisateur.trim();
+    })();
+  const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
+    (function () {
+      const [compteId, numeroContrat, documentDescription] =
+        (function () {
+          const gecoBarCode = node.getProperty("gecoBarCode");
+          const documentId = /\d+$/.exec(gecoBarCode)[0];
+          const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
+          const queryResult = new DbServer('MAF BDD').query(query)[0];
+          const compteId = queryResult[0];
+          const numeroContrat = (function () {
+            const contratId = queryResult[1];
+            const contratLettreCle = queryResult[2];
+            return contratId + contratLettreCle;
+          })();
+          const documentDescription = queryResult[3];
+          return [compteId, numeroContrat, documentDescription];
+        })();
+      const firstWordOfDocumentDescription =
+        (function () {
+          const firstWordOfDocumentDescription =
+            (documentDescription.match(/^(?:Questionnaire)|(?:Contrat)/gi) || [null])[0];
+          return firstWordOfDocumentDescription ?
+            firstWordOfDocumentDescription.toLocaleUpperCase() :
+            firstWordOfDocumentDescription;
+        })();
+      const [famille, cote, typeDocument] =
+        (function () {
+          switch (firstWordOfDocumentDescription) {
+            case "QUESTIONNAIRE":
+              return ["DOCUMENTS CONTRAT", "SOUSCRIPTION", "QUESTIONNAIRE TECHNIQUE"];
+            case "CONTRAT":
+            default:
+              return ["DOCUMENTS CONTRAT", "PIECES CONTRACTUELLES", "CONDITIONS PARTICULIERES"];
+          }
+        })();
+      return [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription];
+    })();
+  const libelle =
+    firstWordOfDocumentDescription[0].toLocaleUpperCase() +
+    firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
+    numeroContrat +
+    (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
+  const jsonDocumentMetadata = {
+    "compteId": compteId,
+    "numeroContrat": numeroContrat,
+    "categoriesFamille": famille,
+    "categoriesCote": cote,
+    "categoriesTypeDocument": typeDocument,
+    "canalId": "10",
+    "sens": "RECEPTION",
+    "nature": "ORIGINAL",
+    "fichierNombrePages": node.pages.length,
+    "deposePar": codeUtilisateur,
+    "libelle": libelle,
+    "fichierNom": libelle + ".pdf",
+  };
+  node.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
+  node.setProperty("codeUtilisateur", codeUtilisateur);
+  node.setProperty("firstWordOfDocumentDescription", firstWordOfDocumentDescription);
 }
 
 /**
  * Called after finishing indexing on a node of this class
  */
-function postProcess(node) {
-  const documentFields = node.getFields();
-  function getDocumentFieldValueByfieldName(fieldName) {
-    return documentFields[fieldName].getValue();
-  }
-  const jsonDocumentMetadata = {
-    "libelle": getDocumentFieldValueByfieldName("libelle"),
-    "deposePar": getDocumentFieldValueByfieldName("depose_par"),
-    "dateDocument": getDocumentFieldValueByfieldName("date_document"),
-    "fichierNom": getDocumentFieldValueByfieldName("nom_fichier"),
-    "categoriesFamille": "DOCUMENTS CONTRAT",
-    "categoriesCote": this.coteDocumentCode,
-    "categoriesTypeDocument": this.typeDocumentCode,
-    "canalId": "10",
-    "sens": "RECEPTION",
-    "nature": "ORIGINAL",
-    "heureNumerisation": (function () {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, "0");
-      const minutes = now.getMinutes().toString().padStart(2, "0");
-      const seconds = now.getSeconds().toString().padStart(2, "0");
-      return hours + minutes + seconds;
-    })(),
-    "fichierNombrePages": node.pages.length,
-  };
-  jsonDocumentMetadata.compteId = compteId;
-  jsonDocumentMetadata.numeroContrat = numeroContrat;
-  node.fields["jsonDocumentMetadata"].value = JSON.stringify(jsonDocumentMetadata);
-}
+function postProcess(node) { }
 
 /**
  * Called when a field gains focus. 
