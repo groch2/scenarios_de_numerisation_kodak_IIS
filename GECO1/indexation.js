@@ -106,6 +106,10 @@ function unload(batch) {
     const year = today.getFullYear();
     return day + "/" + month + "/" + year;
   })();
+  out.println("indexation unload");
+  debug.print("indexation unload");
+  out.println("nombre de document: " + batch.documents.length);
+  debug.print("nombre de document: " + batch.documents.length);
   for (var index = 0; index < batch.documents.length; index++) {
     const document = batch.documents[index];
     const codeUtilisateur = document.getProperty("codeUtilisateur");
@@ -131,72 +135,18 @@ function unload(batch) {
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
-  const codeUtilisateur =
-    (function () {
-      const userName = loggedUser.getUsername();
-      return JSON.parse(
-        httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
-      ).codeUtilisateur.trim();
-    })();
-  const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
-    (function () {
-      const [compteId, numeroContrat, documentDescription] =
-        (function () {
-          const gecoBarCode = node.getProperty("gecoBarCode");
-          const documentId = /\d+$/.exec(gecoBarCode)[0];
-          const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
-          const queryResult = new DbServer('MAF BDD').query(query)[0];
-          const compteId = queryResult[0];
-          const numeroContrat = (function () {
-            const contratId = queryResult[1];
-            const contratLettreCle = queryResult[2];
-            return contratId + contratLettreCle;
-          })();
-          const documentDescription = queryResult[3];
-          return [compteId, numeroContrat, documentDescription];
-        })();
-      const firstWordOfDocumentDescription =
-        (function () {
-          const firstWordOfDocumentDescription =
-            (documentDescription.match(/^(?:Questionnaire)|(?:Contrat)/gi) || [null])[0];
-          return firstWordOfDocumentDescription ?
-            firstWordOfDocumentDescription.toLocaleUpperCase() :
-            firstWordOfDocumentDescription;
-        })();
-      const [famille, cote, typeDocument] =
-        (function () {
-          switch (firstWordOfDocumentDescription) {
-            case "QUESTIONNAIRE":
-              return ["DOCUMENTS CONTRAT", "SOUSCRIPTION", "QUESTIONNAIRE TECHNIQUE"];
-            case "CONTRAT":
-            default:
-              return ["DOCUMENTS CONTRAT", "PIECES CONTRACTUELLES", "CONDITIONS PARTICULIERES"];
-          }
-        })();
-      return [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription];
-    })();
-  const libelle =
-    firstWordOfDocumentDescription[0].toLocaleUpperCase() +
-    firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
-    numeroContrat +
-    (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
-  const jsonDocumentMetadata = {
-    "canalId": "10",
-    "categoriesCote": cote,
-    "categoriesFamille": famille,
-    "categoriesTypeDocument": typeDocument,
-    "compteId": compteId,
-    "deposePar": codeUtilisateur,
-    "fichierNom": libelle + ".pdf",
-    "fichierNombrePages": node.pages.length,
-    "libelle": libelle,
-    "nature": "ORIGINAL",
-    "numeroContrat": numeroContrat,
-    "sens": "RECEPTION",
-  };
-  node.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
-  node.setProperty("codeUtilisateur", codeUtilisateur);
-  node.setProperty("firstWordOfDocumentDescription", firstWordOfDocumentDescription);
+  if (!node.getProperty("codeUtilisateur")) {
+    const codeUtilisateur =
+      (function () {
+        const userName = loggedUser.getUsername();
+        return JSON.parse(
+          httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
+        ).codeUtilisateur.trim();
+      })();
+    node.setProperty("codeUtilisateur", codeUtilisateur);
+  }
+  const gecoBarCode = node.getProperty("gecoBarCode");
+  setDocumentPropertiesFromGecoBarCode(gecoBarCode);
 }
 
 /**
@@ -235,6 +185,10 @@ function fieldFocusLost(field, index) { return true; }
  * For multivalued fields <code>index</code> is the index of the value loosing the focus, for normal fields it is always 0.
  */
 function fieldChanged(field) { }
+
+function barcodeChanged(field) {
+  setDocumentPropertiesFromGecoBarCode(field.value)
+}
 
 /**
  * 
@@ -414,3 +368,63 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  *         (this is the default value, e.g. if you don't return something).
  */
 function keyEvent(evt) { }
+
+function setDocumentPropertiesFromGecoBarCode(gecoBarCode) {
+  const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
+    (function () {
+      const [compteId, numeroContrat, documentDescription] =
+        (function () {
+          const documentId = /\d+$/.exec(gecoBarCode)[0];
+          const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
+          const queryResult = new DbServer('MAF BDD').query(query)[0];
+          const compteId = queryResult[0];
+          const numeroContrat = (function () {
+            const contratId = queryResult[1];
+            const contratLettreCle = queryResult[2];
+            return contratId + contratLettreCle;
+          })();
+          const documentDescription = queryResult[3];
+          return [compteId, numeroContrat, documentDescription];
+        })();
+      const firstWordOfDocumentDescription =
+        (function () {
+          const firstWordOfDocumentDescription =
+            (documentDescription.match(/^(?:Questionnaire)|(?:Contrat)/gi) || [null])[0];
+          return firstWordOfDocumentDescription ?
+            firstWordOfDocumentDescription.toLocaleUpperCase() :
+            firstWordOfDocumentDescription;
+        })();
+      const [famille, cote, typeDocument] =
+        (function () {
+          switch (firstWordOfDocumentDescription) {
+            case "QUESTIONNAIRE":
+              return ["DOCUMENTS CONTRAT", "SOUSCRIPTION", "QUESTIONNAIRE TECHNIQUE"];
+            case "CONTRAT":
+            default:
+              return ["DOCUMENTS CONTRAT", "PIECES CONTRACTUELLES", "CONDITIONS PARTICULIERES"];
+          }
+        })();
+      return [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription];
+    })();
+  const libelle =
+    firstWordOfDocumentDescription[0].toLocaleUpperCase() +
+    firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
+    numeroContrat +
+    (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
+  const jsonDocumentMetadata = {
+    "canalId": "10",
+    "categoriesCote": cote,
+    "categoriesFamille": famille,
+    "categoriesTypeDocument": typeDocument,
+    "compteId": compteId,
+    "deposePar": document.getProperty("codeUtilisateur"),
+    "fichierNom": libelle + ".pdf",
+    "fichierNombrePages": document.pages.length,
+    "libelle": libelle,
+    "nature": "ORIGINAL",
+    "numeroContrat": numeroContrat,
+    "sens": "RECEPTION",
+  };
+  document.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
+  document.setProperty("firstWordOfDocumentDescription", firstWordOfDocumentDescription);
+}
