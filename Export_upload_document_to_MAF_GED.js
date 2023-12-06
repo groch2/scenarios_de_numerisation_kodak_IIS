@@ -22,7 +22,7 @@ function release(context) {
       throw new Exception("les métadonnées du documents pour l'upload vers GED MAF sont introuvables");
     }
     out.println("jsonDocumentMetadata :");
-    out.println(jsonDocumentMetadata);
+    out.println(JSON.stringify(jsonDocumentMetadata));
     const file = (function () {
       const releaseItemId = document.getId();
       const outputFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES)[releaseItemId];

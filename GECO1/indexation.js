@@ -125,6 +125,7 @@ function unload(batch) {
       jsonDocumentMetadata.traitePar = codeUtilisateur;
       jsonDocumentMetadata.vuPar = codeUtilisateur;
     }
+    document.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
   }
 }
 
@@ -153,7 +154,10 @@ function preProcess(node) {
 /**
  * Called after finishing indexing on a node of this class
  */
-function postProcess(node) { }
+function postProcess(node) {
+  debug.print("postProcess");
+  debug.print("gecoBarCode: " + node.getProperty("gecoBarCode"));
+}
 
 /**
  * Called when a field gains focus. 
