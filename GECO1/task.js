@@ -190,6 +190,8 @@ function pageArrived(_, page) {
 function pageScanned(_, document, page) {
   const gecoBarCode = page.barcodeData.find(function (barcodeData) { return /^GE002-/.test(barcodeData.value) });
   if (gecoBarCode) {
+    debug.print("pageScanned - gecoBarCode: " + gecoBarCode.value);
+    out.println("pageScanned - gecoBarCode: " + gecoBarCode.value);
     document.setProperty("gecoBarCode", gecoBarCode.value);
   }
 }

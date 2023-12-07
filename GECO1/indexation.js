@@ -88,7 +88,10 @@ importClass(java.net.URL);
  * This method is called every time the client gets into Indexing mode (not 
  * when Indexing starts, but when a script is loaded, as needed).
  */
-function load() { }
+function load(batch) {
+  out.println("indexation - load - batch available: " + !!batch);
+  debug.print("indexation - load - batch available: " + !!batch);
+}
 
 /**
  * Called when ending indexing operation.
@@ -123,8 +126,13 @@ function preProcess(node) {
     node.setProperty("codeUtilisateur", codeUtilisateur);
   }
   const gecoBarCode = node.getProperty("gecoBarCode");
-  setDocumentPropertiesFromGecoBarCode(gecoBarCode);
-  node.fields["barcode"].setValue(gecoBarCode);
+  debug.print("preProcess - gecoBarCode: " + gecoBarCode);
+  out.println("preProcess - gecoBarCode: " + gecoBarCode);
+  node.fields["gecoBarCode"].setValue(gecoBarCode);
+  setDocumentIndexationDataFromGecoBarCode({
+    document: node,
+    gecoBarCode: gecoBarCode
+  });
 }
 
 /**
@@ -194,8 +202,13 @@ function fieldFocusLost(field, index) { return true; }
  */
 function fieldChanged(field) { }
 
-function barcodeChanged(field) {
-  setDocumentPropertiesFromGecoBarCode(field.value)
+function gecoBarCodeChanged(field) {
+  debug.print("is document available in gecoBarCodeChanged: " + !!document);
+  out.println("is document available in gecoBarCodeChanged: " + !!document);
+  setDocumentIndexationDataFromGecoBarCode({
+    document: document,
+    gecoBarCode: gecoBarCode
+  });
 }
 
 /**
@@ -377,7 +390,7 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  */
 function keyEvent(evt) { }
 
-function setDocumentPropertiesFromGecoBarCode(gecoBarCode) {
+function getDocumentIndexationDataFromGecoBarCode(gecoBarCode) {
   const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
     (function () {
       const [compteId, numeroContrat, documentDescription] =
@@ -433,6 +446,14 @@ function setDocumentPropertiesFromGecoBarCode(gecoBarCode) {
     "numeroContrat": numeroContrat,
     "sens": "RECEPTION",
   };
-  document.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
-  document.setProperty("firstWordOfDocumentDescription", firstWordOfDocumentDescription);
+  return {
+    jsonDocumentMetadata: jsonDocumentMetadata,
+    firstWordOfDocumentDescription: firstWordOfDocumentDescription
+  };
+}
+
+function setDocumentIndexationDataFromGecoBarCode({ document, gecoBarCode }) {
+  const documentIndexationData = getDocumentIndexationDataFromGecoBarCode(gecoBarCode);
+  document.setProperty("jsonDocumentMetadata", documentIndexationData.jsonDocumentMetadata);
+  document.setProperty("firstWordOfDocumentDescription", documentIndexationData.firstWordOfDocumentDescription);
 }
