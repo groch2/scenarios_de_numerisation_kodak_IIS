@@ -452,7 +452,7 @@ function getDocumentIndexationDataFromGecoBarCode(gecoBarCode) {
   };
 }
 
-function setDocumentIndexationDataFromGecoBarCode({ document, gecoBarCode }) {
+function setDocumentIndexationDataFromGecoBarCode({ document: document, gecoBarCode: gecoBarCode }) {
   const documentIndexationData = getDocumentIndexationDataFromGecoBarCode(gecoBarCode);
   document.setProperty("jsonDocumentMetadata", documentIndexationData.jsonDocumentMetadata);
   document.setProperty("firstWordOfDocumentDescription", documentIndexationData.firstWordOfDocumentDescription);
