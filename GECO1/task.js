@@ -52,11 +52,7 @@ function batchLoaded(batch) { }
  *     If the current Batch is closed, function batchUnloaded will be called
  *     with reason UnloadReason.Close and actionFollows ActionType.NewBatch.
  */
-function batchUnloaded(batch, reason, actionFollows) {
-  out.println("task - batchUnloaded");
-  out.println("task - nombre de document: " + batch.documents.length);
-  debug.print("task - nombre de document: " + batch.documents.length);
-}
+function batchUnloaded(batch, reason, actionFollows) { }
 
 /**
  * Called every time the structure of the Batch changes.

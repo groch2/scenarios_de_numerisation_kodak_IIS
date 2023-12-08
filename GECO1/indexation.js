@@ -88,10 +88,7 @@ importClass(java.net.URL);
  * This method is called every time the client gets into Indexing mode (not 
  * when Indexing starts, but when a script is loaded, as needed).
  */
-function load(batch) {
-  out.println("indexation - load - batch available: " + !!batch);
-  debug.print("indexation - load - batch available: " + !!batch);
-}
+function load(batch) { }
 
 /**
  * Called when ending indexing operation.
@@ -101,12 +98,7 @@ function load(batch) {
  * case, any changes you make to the Batch from the unload method
  * will not have any effect.
  */
-function unload(batch) {
-  out.println("indexation unload");
-  debug.print("indexation unload");
-  out.println("nombre de document: " + batch.documents.length);
-  debug.print("nombre de document: " + batch.documents.length);
-}
+function unload(batch) { }
 
 /**
  * Called before starting indexing on a node of this class.
@@ -126,33 +118,19 @@ function preProcess(node) {
     node.setProperty("codeUtilisateur", codeUtilisateur);
   }
   const gecoBarCode = node.getProperty("gecoBarCode");
-  debug.print("preProcess - gecoBarCode: " + gecoBarCode);
-  out.println("preProcess - gecoBarCode: " + gecoBarCode);
   node.fields["gecoBarCode"].setValue(gecoBarCode);
   setDocumentIndexationDataFromGecoBarCode({
     document: node,
     gecoBarCode: gecoBarCode
   });
-  debug.print("test 3 jsonDocumentMetadata :");
-  debug.print(node.getProperty("jsonDocumentMetadata"));
-  if (node.fields["identifiant"].value === "") {
-    node.fields["identifiant"].setValue(getRandomGuid());
-  }
 }
 
 /**
  * Called after finishing indexing on a node of this class
  */
 function postProcess(node) {
-  debug.print("postProcess");
-  out.println("postProcess");
-  debug.print("gecoBarCode: " + node.getProperty("gecoBarCode"));
-  out.println("gecoBarCode: " + node.getProperty("gecoBarCode"));
   const dateNow = new Date().toJSON();
   const codeUtilisateur = node.getProperty("codeUtilisateur");
-  debug.print("test 4 jsonDocumentMetadata:");
-  debug.print(node.getProperty("jsonDocumentMetadata"));
-  debug.print(JSON.stringify({ name: "toto", age: 7, available: true }));
   const jsonDocumentMetadata = JSON.parse(node.getProperty("jsonDocumentMetadata"));
   jsonDocumentMetadata.dateDocument =
     jsonDocumentMetadata.dateNumerisation =
@@ -165,14 +143,6 @@ function postProcess(node) {
     jsonDocumentMetadata.traitePar = codeUtilisateur;
     jsonDocumentMetadata.vuPar = codeUtilisateur;
   }
-  const identifiant = node.fields["identifiant"].value;
-  debug.print("identifiant: " + identifiant);
-  jsonDocumentMetadata.libelle = identifiant;
-  debug.print("libellé: " + jsonDocumentMetadata.libelle);
-  debug.print("test 5 jsonDocumentMetadata:");
-  debug.print(JSON.stringify(jsonDocumentMetadata));
-  out.println("test 5 jsonDocumentMetadata:");
-  out.println(JSON.stringify(jsonDocumentMetadata));
   node.setProperty("jsonDocumentMetadata", JSON.stringify(jsonDocumentMetadata));
 }
 
@@ -209,11 +179,9 @@ function fieldFocusLost(field, index) { return true; }
 function fieldChanged(field) { }
 
 function gecoBarCodeChanged(field) {
-  debug.print("is document available in gecoBarCodeChanged: " + !!document);
-  out.println("is document available in gecoBarCodeChanged: " + !!document);
   setDocumentIndexationDataFromGecoBarCode({
     document: document,
-    gecoBarCode: gecoBarCode
+    gecoBarCode: field.value
   });
 }
 
