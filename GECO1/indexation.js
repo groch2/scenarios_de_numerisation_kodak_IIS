@@ -177,7 +177,9 @@ function postProcess(node) {
   debug.print("libellé: " + jsonDocumentMetadata.libelle);
   debug.print("test 5 jsonDocumentMetadata:");
   debug.print(JSON.stringify(jsonDocumentMetadata));
-  node.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
+  out.println("test 5 jsonDocumentMetadata:");
+  out.println(JSON.stringify(jsonDocumentMetadata));
+  node.setProperty("jsonDocumentMetadata", JSON.stringify(jsonDocumentMetadata));
 }
 
 /**

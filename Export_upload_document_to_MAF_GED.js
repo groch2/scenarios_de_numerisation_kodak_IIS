@@ -17,13 +17,12 @@ function release(context) {
 
   (function () {
     const document = context.getReleaseItem();
-    out.println("jsonDocumentMetadata 1:");
-    out.println(document.getProperty("jsonDocumentMetadata"));
     const jsonDocumentMetadata = JSON.parse(document.getProperty("jsonDocumentMetadata"));
     if (!jsonDocumentMetadata) {
+      out.println("les métadonnées du documents pour l'upload vers GED MAF sont introuvables");
       throw new Exception("les métadonnées du documents pour l'upload vers GED MAF sont introuvables");
     }
-    out.println("jsonDocumentMetadata :");
+    out.println("release - jsonDocumentMetadata :");
     out.println(JSON.stringify(jsonDocumentMetadata));
     const file = (function () {
       const releaseItemId = document.getId();
