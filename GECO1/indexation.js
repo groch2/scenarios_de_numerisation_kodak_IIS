@@ -366,11 +366,7 @@ function keyEvent(evt) { }
 
 function setDocumentIndexationDataFromGecoBarCode({ document: document, gecoBarCode: gecoBarCode }) {
   const documentIndexationData = getDocumentIndexationDataFromGecoBarCode({ gecoBarCode: gecoBarCode, document: document });
-  debug.print("test 2 jsonDocumentMetadata :");
-  debug.print(JSON.stringify(documentIndexationData.jsonDocumentMetadata));
   document.setProperty("jsonDocumentMetadata", JSON.stringify(documentIndexationData.jsonDocumentMetadata));
-  debug.print("test 2.5 jsonDocumentMetadata :");
-  debug.print(JSON.stringify(JSON.parse(document.getProperty("jsonDocumentMetadata"))));
   document.setProperty("firstWordOfDocumentDescription", documentIndexationData.firstWordOfDocumentDescription);
 
   function getDocumentIndexationDataFromGecoBarCode({ gecoBarCode: gecoBarCode, document: document }) {
@@ -429,8 +425,6 @@ function setDocumentIndexationDataFromGecoBarCode({ document: document, gecoBarC
       "numeroContrat": numeroContrat,
       "sens": "RECEPTION",
     };
-    debug.print("test fresh jsonDocumentMetadata :");
-    debug.print(JSON.stringify(jsonDocumentMetadata));
     return {
       jsonDocumentMetadata: jsonDocumentMetadata,
       firstWordOfDocumentDescription: firstWordOfDocumentDescription
