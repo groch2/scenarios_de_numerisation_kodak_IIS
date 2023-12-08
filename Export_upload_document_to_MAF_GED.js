@@ -17,7 +17,9 @@ function release(context) {
 
   (function () {
     const document = context.getReleaseItem();
-    const jsonDocumentMetadata = document.getProperty("jsonDocumentMetadata");
+    out.println("jsonDocumentMetadata 1:");
+    out.println(document.getProperty("jsonDocumentMetadata"));
+    const jsonDocumentMetadata = JSON.parse(document.getProperty("jsonDocumentMetadata"));
     if (!jsonDocumentMetadata) {
       throw new Exception("les métadonnées du documents pour l'upload vers GED MAF sont introuvables");
     }
@@ -128,8 +130,8 @@ function release(context) {
     jsonDocumentMetadata: jsonDocumentMetadata,
     fileSize: fileSize }) {
     jsonDocumentMetadata = (function () {
-      jsonDocumentMetadata["fileId"] = fileUploadGuid;
-      jsonDocumentMetadata["fichierTaille"] = fileSize;
+      jsonDocumentMetadata.fileId = fileUploadGuid;
+      jsonDocumentMetadata.fichierTaille = fileSize;
       return JSON.stringify(jsonDocumentMetadata);
     })();
 

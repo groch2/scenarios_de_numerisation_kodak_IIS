@@ -566,3 +566,17 @@ function httpGetString(url) {
   urlConnection.disconnect();
   return stringBuffer.toString();
 }
+
+function getRandomGuid() {
+  return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+}
+
+function printObjectProperties({ title: title, object: object }) {
+  out.println(title);
+  debug.print(title);
+  for (var key in object) {
+    const element = object[key];
+    out.println(key + ": " + element);
+    debug.print(key + ": " + element);
+  }
+}

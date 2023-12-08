@@ -133,6 +133,11 @@ function preProcess(node) {
     document: node,
     gecoBarCode: gecoBarCode
   });
+  debug.print("test 3 jsonDocumentMetadata :");
+  debug.print(node.getProperty("jsonDocumentMetadata"));
+  if (node.fields["identifiant"].value === "") {
+    node.fields["identifiant"].setValue(getRandomGuid());
+  }
 }
 
 /**
@@ -151,7 +156,10 @@ function postProcess(node) {
     return day + "/" + month + "/" + year;
   })();
   const codeUtilisateur = node.getProperty("codeUtilisateur");
-  const jsonDocumentMetadata = node.getProperty("jsonDocumentMetadata");
+  debug.print("test 4 jsonDocumentMetadata:");
+  debug.print(node.getProperty("jsonDocumentMetadata"));
+  debug.print(JSON.stringify({ name: "toto", age: 7, available: true }));
+  const jsonDocumentMetadata = JSON.parse(node.getProperty("jsonDocumentMetadata"));
   jsonDocumentMetadata.dateDocument =
     jsonDocumentMetadata.dateNumerisation =
     jsonDocumentMetadata.deposeLe = dateNow;
@@ -163,10 +171,12 @@ function postProcess(node) {
     jsonDocumentMetadata.traitePar = codeUtilisateur;
     jsonDocumentMetadata.vuPar = codeUtilisateur;
   }
-  debug.print("postProcess - jsonDocumentMetadata:");
+  const identifiant = node.fields["identifiant"].value;
+  debug.print("identifiant: " + identifiant);
+  jsonDocumentMetadata.libelle = identifiant;
+  debug.print("libellé: " + jsonDocumentMetadata.libelle);
+  debug.print("test 5 jsonDocumentMetadata:");
   debug.print(JSON.stringify(jsonDocumentMetadata));
-  out.println("postProcess - jsonDocumentMetadata:");
-  out.println(JSON.stringify(jsonDocumentMetadata));
   node.setProperty("jsonDocumentMetadata", jsonDocumentMetadata);
 }
 
@@ -390,70 +400,76 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  */
 function keyEvent(evt) { }
 
-function getDocumentIndexationDataFromGecoBarCode(gecoBarCode) {
-  const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
-    (function () {
-      const [compteId, numeroContrat, documentDescription] =
-        (function () {
-          const documentId = /\d+$/.exec(gecoBarCode)[0];
-          const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
-          const queryResult = new DbServer('MAF BDD').query(query)[0];
-          const compteId = queryResult[0];
-          const numeroContrat = (function () {
-            const contratId = queryResult[1];
-            const contratLettreCle = queryResult[2];
-            return contratId + contratLettreCle;
-          })();
-          const documentDescription = queryResult[3];
-          return [compteId, numeroContrat, documentDescription];
-        })();
-      const firstWordOfDocumentDescription =
-        (function () {
-          const firstWordOfDocumentDescription =
-            (documentDescription.match(/^(?:Questionnaire)|(?:Contrat)/gi) || [null])[0];
-          return firstWordOfDocumentDescription ?
-            firstWordOfDocumentDescription.toLocaleUpperCase() :
-            firstWordOfDocumentDescription;
-        })();
-      const [famille, cote, typeDocument] =
-        (function () {
-          switch (firstWordOfDocumentDescription) {
-            case "QUESTIONNAIRE":
-              return ["DOCUMENTS CONTRAT", "SOUSCRIPTION", "QUESTIONNAIRE TECHNIQUE"];
-            case "CONTRAT":
-            default:
-              return ["DOCUMENTS CONTRAT", "PIECES CONTRACTUELLES", "CONDITIONS PARTICULIERES"];
-          }
-        })();
-      return [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription];
-    })();
-  const libelle =
-    firstWordOfDocumentDescription[0].toLocaleUpperCase() +
-    firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
-    numeroContrat +
-    (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
-  const jsonDocumentMetadata = {
-    "canalId": "10",
-    "categoriesCote": cote,
-    "categoriesFamille": famille,
-    "categoriesTypeDocument": typeDocument,
-    "compteId": compteId,
-    "deposePar": document.getProperty("codeUtilisateur"),
-    "fichierNom": libelle + ".pdf",
-    "fichierNombrePages": document.pages.length,
-    "libelle": libelle,
-    "nature": "ORIGINAL",
-    "numeroContrat": numeroContrat,
-    "sens": "RECEPTION",
-  };
-  return {
-    jsonDocumentMetadata: jsonDocumentMetadata,
-    firstWordOfDocumentDescription: firstWordOfDocumentDescription
-  };
-}
-
 function setDocumentIndexationDataFromGecoBarCode({ document: document, gecoBarCode: gecoBarCode }) {
-  const documentIndexationData = getDocumentIndexationDataFromGecoBarCode(gecoBarCode);
-  document.setProperty("jsonDocumentMetadata", documentIndexationData.jsonDocumentMetadata);
+  const documentIndexationData = getDocumentIndexationDataFromGecoBarCode({ gecoBarCode: gecoBarCode, document: document });
+  debug.print("test 2 jsonDocumentMetadata :");
+  debug.print(JSON.stringify(documentIndexationData.jsonDocumentMetadata));
+  document.setProperty("jsonDocumentMetadata", JSON.stringify(documentIndexationData.jsonDocumentMetadata));
+  debug.print("test 2.5 jsonDocumentMetadata :");
+  debug.print(JSON.stringify(JSON.parse(document.getProperty("jsonDocumentMetadata"))));
   document.setProperty("firstWordOfDocumentDescription", documentIndexationData.firstWordOfDocumentDescription);
+
+  function getDocumentIndexationDataFromGecoBarCode({ gecoBarCode: gecoBarCode, document: document }) {
+    const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
+      (function () {
+        const [compteId, numeroContrat, documentDescription] =
+          (function () {
+            const documentId = /\d+$/.exec(gecoBarCode)[0];
+            const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
+            const queryResult = new DbServer('MAF BDD').query(query)[0];
+            const compteId = queryResult[0];
+            const numeroContrat = (function () {
+              const contratId = queryResult[1];
+              const contratLettreCle = queryResult[2];
+              return contratId + contratLettreCle;
+            })();
+            const documentDescription = queryResult[3];
+            return [compteId, numeroContrat, documentDescription];
+          })();
+        const firstWordOfDocumentDescription =
+          (function () {
+            const firstWordOfDocumentDescription =
+              (documentDescription.match(/^(?:Questionnaire)|(?:Contrat)/gi) || [null])[0];
+            return firstWordOfDocumentDescription ?
+              firstWordOfDocumentDescription.toLocaleUpperCase() :
+              firstWordOfDocumentDescription;
+          })();
+        const [famille, cote, typeDocument] =
+          (function () {
+            switch (firstWordOfDocumentDescription) {
+              case "QUESTIONNAIRE":
+                return ["DOCUMENTS CONTRAT", "SOUSCRIPTION", "QUESTIONNAIRE TECHNIQUE"];
+              case "CONTRAT":
+              default:
+                return ["DOCUMENTS CONTRAT", "PIECES CONTRACTUELLES", "CONDITIONS PARTICULIERES"];
+            }
+          })();
+        return [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription];
+      })();
+    const libelle =
+      firstWordOfDocumentDescription[0].toLocaleUpperCase() +
+      firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
+      numeroContrat +
+      (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
+    const jsonDocumentMetadata = {
+      "canalId": "10",
+      "categoriesCote": cote,
+      "categoriesFamille": famille,
+      "categoriesTypeDocument": typeDocument,
+      "compteId": compteId,
+      "deposePar": document.getProperty("codeUtilisateur"),
+      "fichierNom": libelle + ".pdf",
+      "fichierNombrePages": document.pages.length,
+      "libelle": libelle,
+      "nature": "ORIGINAL",
+      "numeroContrat": numeroContrat,
+      "sens": "RECEPTION",
+    };
+    debug.print("test fresh jsonDocumentMetadata :");
+    debug.print(JSON.stringify(jsonDocumentMetadata));
+    return {
+      jsonDocumentMetadata: jsonDocumentMetadata,
+      firstWordOfDocumentDescription: firstWordOfDocumentDescription
+    };
+  }
 }
