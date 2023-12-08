@@ -148,13 +148,7 @@ function postProcess(node) {
   out.println("postProcess");
   debug.print("gecoBarCode: " + node.getProperty("gecoBarCode"));
   out.println("gecoBarCode: " + node.getProperty("gecoBarCode"));
-  const dateNow = (function () {
-    const today = new Date();
-    const day = today.getDate().toString().padStart(2, "0");
-    const month = (today.getMonth() + 1).toString().padStart(2, "0");
-    const year = today.getFullYear();
-    return day + "/" + month + "/" + year;
-  })();
+  const dateNow = new Date().toJSON();
   const codeUtilisateur = node.getProperty("codeUtilisateur");
   debug.print("test 4 jsonDocumentMetadata:");
   debug.print(node.getProperty("jsonDocumentMetadata"));

@@ -131,6 +131,8 @@ function release(context) {
     jsonDocumentMetadata = (function () {
       jsonDocumentMetadata.fileId = fileUploadGuid;
       jsonDocumentMetadata.fichierTaille = fileSize;
+      out.println("finalizeDocumentUpload - jsonDocumentMetadata :");
+      out.println(JSON.stringify(jsonDocumentMetadata));
       return JSON.stringify(jsonDocumentMetadata);
     })();
 
