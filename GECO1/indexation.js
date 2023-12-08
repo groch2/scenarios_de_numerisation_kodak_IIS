@@ -117,11 +117,11 @@ function preProcess(node) {
       })();
     node.setProperty("codeUtilisateur", codeUtilisateur);
   }
-  const gecoBarCode = node.getProperty("gecoBarCode");
-  node.fields["gecoBarCode"].setValue(gecoBarCode);
+  const gecoOriginalDocumentId = node.getProperty("gecoOriginalDocumentId");
+  node.fields["gecoOriginalDocumentId"].setValue(gecoOriginalDocumentId);
   setDocumentIndexationDataFromGecoBarCode({
     document: node,
-    gecoBarCode: gecoBarCode
+    gecoOriginalDocumentId: gecoOriginalDocumentId
   });
 }
 
@@ -178,10 +178,10 @@ function fieldFocusLost(field, index) { return true; }
  */
 function fieldChanged(field) { }
 
-function gecoBarCodeChanged(field) {
+function gecoOriginalDocumentIdChanged(field) {
   setDocumentIndexationDataFromGecoBarCode({
     document: document,
-    gecoBarCode: field.value
+    gecoOriginalDocumentId: field.value
   });
 }
 
@@ -364,18 +364,17 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  */
 function keyEvent(evt) { }
 
-function setDocumentIndexationDataFromGecoBarCode({ document: document, gecoBarCode: gecoBarCode }) {
-  const documentIndexationData = getDocumentIndexationDataFromGecoBarCode({ gecoBarCode: gecoBarCode, document: document });
+function setDocumentIndexationDataFromGecoBarCode({ document: document, gecoOriginalDocumentId: gecoOriginalDocumentId }) {
+  const documentIndexationData = getDocumentIndexationDataFromGecoBarCode({ gecoOriginalDocumentId: gecoOriginalDocumentId, document: document });
   document.setProperty("jsonDocumentMetadata", JSON.stringify(documentIndexationData.jsonDocumentMetadata));
   document.setProperty("firstWordOfDocumentDescription", documentIndexationData.firstWordOfDocumentDescription);
 
-  function getDocumentIndexationDataFromGecoBarCode({ gecoBarCode: gecoBarCode, document: document }) {
+  function getDocumentIndexationDataFromGecoBarCode({ gecoOriginalDocumentId: gecoOriginalDocumentId, document: document }) {
     const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
       (function () {
         const [compteId, numeroContrat, documentDescription] =
           (function () {
-            const documentId = /\d+$/.exec(gecoBarCode)[0];
-            const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + documentId;
+            const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + gecoOriginalDocumentId;
             const queryResult = new DbServer('MAF BDD').query(query)[0];
             const compteId = queryResult[0];
             const numeroContrat = (function () {

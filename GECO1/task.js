@@ -192,7 +192,8 @@ function pageScanned(_, document, page) {
   if (gecoBarCode) {
     debug.print("pageScanned - gecoBarCode: " + gecoBarCode.value);
     out.println("pageScanned - gecoBarCode: " + gecoBarCode.value);
-    document.setProperty("gecoBarCode", gecoBarCode.value);
+    const gecoOriginalDocumentId = /\d+$/.exec(gecoBarCode.value)[0];
+    document.setProperty("gecoOriginalDocumentId", gecoOriginalDocumentId);
   }
 }
 
