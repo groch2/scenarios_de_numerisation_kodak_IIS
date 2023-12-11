@@ -585,20 +585,8 @@ function printObjectProperties({ title: title, object: object }) {
 }
 
 function getApplicationSettings() {
-  return JSON.parse(getFileContent("C:\\InfoInputSolution\\settings.json"));
-}
-
-function getFileContent(filePath) {
-  const file = new File(filePath);
-  const inputStream = new FileInputStream(file);
-  const stringBuilder = new StringBuilder();
-  const bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-  var line;
-  while ((line = bufferedReader.readLine()) !== null) {
-    stringBuilder.append(line).append("\n");
-  }
-  bufferedReader.close();
-  inputStream.close();
-  file.close();
-  return stringBuilder.toString();
+  return {
+    "gedApiBaseAddress": "https://api-ged-intra.int.maf.local/",
+    "butApiBaseAddress": "https://api-but-intra.int.maf.local/"
+  };
 }

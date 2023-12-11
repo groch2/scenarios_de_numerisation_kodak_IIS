@@ -111,7 +111,7 @@ function preProcess(node) {
     const codeUtilisateur =
       (function () {
         const userName = loggedUser.getUsername();
-        const butApiUtilisateurAddress = getApplicationSettings().gedApiBaseAddress + "/api/v2/Utilisateurs/" + userName
+        const butApiUtilisateurAddress = getApplicationSettings().butApiBaseAddress + "api/v2/Utilisateurs/" + userName
         return JSON.parse(
           httpGetString(butApiUtilisateurAddress)
         ).codeUtilisateur.trim();

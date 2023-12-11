@@ -13,7 +13,7 @@ importClass(java.lang.StringBuilder);
 importClass(java.net.URL);
 
 function release(context) {
-  const gedApiBaseAddress = getApplicationSettings().gedApiBaseAddress + "/v2/";
+  const gedApiBaseAddress = getApplicationSettings().gedApiBaseAddress + "v2/";
   out.println(JSON.stringify({ gedApiBaseAddress: gedApiBaseAddress }));
 
   (function () {
