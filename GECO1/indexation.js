@@ -424,6 +424,7 @@ function setDocumentIndexationDataFromGecoBarCode({
       firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
       numeroContrat +
       (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
+    const fichierNom = libelle + ".pdf";
     const jsonDocumentMetadata = {
       "canalId": "10",
       "categoriesCote": cote,
@@ -431,13 +432,20 @@ function setDocumentIndexationDataFromGecoBarCode({
       "categoriesTypeDocument": typeDocument,
       "compteId": compteId,
       "deposePar": document.getProperty("codeUtilisateur"),
-      "fichierNom": libelle + ".pdf",
+      "fichierNom": fichierNom,
       "fichierNombrePages": document.pages.length,
       "libelle": libelle,
       "nature": "ORIGINAL",
       "numeroContrat": numeroContrat,
       "sens": "RECEPTION",
     };
+    document.fields["famille"].setValue(famille);
+    document.fields["cote"].setValue(cote);
+    document.fields["typeDocument"].setValue(cote);
+    document.fields["compteId"].setValue(compteId);
+    document.fields["fichierNom"].setValue(fichierNom);
+    document.fields["libelle"].setValue(libelle);
+    document.fields["numeroContrat"].setValue(numeroContrat);
     return {
       jsonDocumentMetadata: jsonDocumentMetadata,
       firstWordOfDocumentDescription: firstWordOfDocumentDescription
