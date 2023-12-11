@@ -19,7 +19,7 @@ function release(context) {
     const document = context.getReleaseItem();
     const jsonDocumentMetadata = JSON.parse(document.getProperty("jsonDocumentMetadata"));
     if (!jsonDocumentMetadata) {
-      const errorMessage = "les métadonnées du documents pour l'upload vers GED MAF sont introuvables";
+      var errorMessage = "les métadonnées du documents pour l'upload vers GED MAF sont introuvables";
       out.println(errorMessage);
       log.error(errorMessage);
       throw new Exception(errorMessage);
