@@ -364,7 +364,10 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  */
 function keyEvent(evt) { }
 
-function setDocumentIndexationDataFromGecoBarCode({ document: document, gecoOriginalDocumentId: gecoOriginalDocumentId }) {
+function setDocumentIndexationDataFromGecoBarCode({
+  document: document,
+  gecoOriginalDocumentId: gecoOriginalDocumentId
+}) {
   const documentIndexationData = getDocumentIndexationDataFromGecoBarCode({ gecoOriginalDocumentId: gecoOriginalDocumentId, document: document });
   document.setProperty("jsonDocumentMetadata", JSON.stringify(documentIndexationData.jsonDocumentMetadata));
   document.setProperty("firstWordOfDocumentDescription", documentIndexationData.firstWordOfDocumentDescription);
