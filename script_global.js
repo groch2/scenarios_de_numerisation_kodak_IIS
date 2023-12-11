@@ -1,6 +1,4 @@
 importClass(java.io.BufferedReader);
-importClass(java.io.File);
-importClass(java.io.FileInputStream);
 importClass(java.io.InputStreamReader);
 importClass(java.lang.StringBuffer);
 importClass(java.net.URL);
