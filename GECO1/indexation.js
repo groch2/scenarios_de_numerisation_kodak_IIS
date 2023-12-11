@@ -368,9 +368,19 @@ function setDocumentIndexationDataFromGecoBarCode({
   document: document,
   gecoOriginalDocumentId: gecoOriginalDocumentId
 }) {
-  const documentIndexationData = getDocumentIndexationDataFromGecoBarCode({ gecoOriginalDocumentId: gecoOriginalDocumentId, document: document });
-  document.setProperty("jsonDocumentMetadata", JSON.stringify(documentIndexationData.jsonDocumentMetadata));
-  document.setProperty("firstWordOfDocumentDescription", documentIndexationData.firstWordOfDocumentDescription);
+  const documentIndexationData =
+    getDocumentIndexationDataFromGecoBarCode({
+      gecoOriginalDocumentId: gecoOriginalDocumentId,
+      document: document
+    });
+  document.setProperty(
+    "jsonDocumentMetadata",
+    JSON.stringify(documentIndexationData.jsonDocumentMetadata)
+  );
+  document.setProperty(
+    "firstWordOfDocumentDescription",
+    documentIndexationData.firstWordOfDocumentDescription
+  );
 
   function getDocumentIndexationDataFromGecoBarCode({ gecoOriginalDocumentId: gecoOriginalDocumentId, document: document }) {
     const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
