@@ -110,8 +110,9 @@ function preProcess(node) {
   if (!node.getProperty("codeUtilisateur")) {
     const codeUtilisateur =
       (function () {
+        const butApiBaseAddress = getApplicationSettings().butApiBaseAddress;
         const userName = loggedUser.getUsername();
-        const butApiUtilisateurAddress = "https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName
+        const butApiUtilisateurAddress = butApiBaseAddress + "api/v2/Utilisateurs/" + userName
         return JSON.parse(
           httpGetString(butApiUtilisateurAddress)
         ).codeUtilisateur.trim();

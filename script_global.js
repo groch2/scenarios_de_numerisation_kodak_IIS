@@ -581,3 +581,14 @@ function printObjectProperties({ title: title, object: object }) {
     debug.print(key + ": " + element);
   }
 }
+
+
+function getApplicationSettings() {
+  return {
+    "gedApiBaseAddress": "https://api-ged-intra.int.maf.local/",
+    "butApiBaseAddress": "https://api-but-intra.int.maf.local/"
+  };
+}
+
+const butApiBaseAddress = "https://api-but-intra.int.maf.local/";
+const gedApiBaseAddress = "https://api-ged-intra.int.maf.local/";
