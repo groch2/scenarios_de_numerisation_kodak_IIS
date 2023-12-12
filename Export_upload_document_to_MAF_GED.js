@@ -13,8 +13,7 @@ importClass(java.lang.StringBuilder);
 importClass(java.net.URL);
 
 function release(context) {
-  const gedApiBaseAddress = getApplicationSettings().gedApiBaseAddress + "v2/";
-  out.println(JSON.stringify({ gedApiBaseAddress: gedApiBaseAddress }));
+  const gedApiBaseAddress = "https://api-but-intra.int.maf.local/v2/";
 
   (function () {
     const document = context.getReleaseItem();
