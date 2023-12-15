@@ -84,7 +84,7 @@ function batchStructureChanged(batch) { }
  */
 importPackage(com.imagetrust.tc.model.object);
 function preScan(batch) {
-  batch.setProperty("libelleSuffix", "signé");
+  batch.setProperty("libelleSuffix", "non signé");
   return { DetectBarcodeTypesWhileScanning: [BarcodeType.Code_39] };
 }
 
@@ -160,7 +160,7 @@ function postScan(batch) { }
  *
  */
 function pageArrived(_, page) {
-  if (page.barcodeData.length > 0 && areStringsEqualsCaseInsensitive(page.barcodeData[0].value, "GECO1-SEPPLI-V1")) {
+  if (page.barcodeData.length > 0 && areStringsEqualsCaseInsensitive(page.barcodeData[0].value, "GECO2-SEPPLI-V1")) {
     return {
       Separation: Const.SepNewDoc,
       Retention: Const.DeleteImage

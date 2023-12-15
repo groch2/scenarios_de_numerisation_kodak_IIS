@@ -107,6 +107,7 @@ function unload(batch) { }
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
 function preProcess(node) {
+  libelleSuffix = node.getParent().getProperty("libelleSuffix");
   if (!node.getProperty("codeUtilisateur")) {
     const codeUtilisateur =
       (function () {
@@ -123,7 +124,8 @@ function preProcess(node) {
   node.fields["gecoOriginalDocumentId"].setValue(gecoOriginalDocumentId);
   setDocumentIndexationDataFromGecoBarCode({
     document: node,
-    gecoOriginalDocumentId: gecoOriginalDocumentId
+    gecoOriginalDocumentId: gecoOriginalDocumentId,
+    libelleSuffix: libelleSuffix,
   });
 }
 
@@ -183,7 +185,8 @@ function fieldChanged(field) { }
 function gecoOriginalDocumentIdChanged(field) {
   setDocumentIndexationDataFromGecoBarCode({
     document: document,
-    gecoOriginalDocumentId: field.value
+    gecoOriginalDocumentId: field.value,
+    libelleSuffix: libelleSuffix,
   });
 }
 
@@ -365,91 +368,3 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  *         (this is the default value, e.g. if you don't return something).
  */
 function keyEvent(evt) { }
-
-function setDocumentIndexationDataFromGecoBarCode({
-  document: document,
-  gecoOriginalDocumentId: gecoOriginalDocumentId
-}) {
-  const documentIndexationData =
-    getDocumentIndexationDataFromGecoBarCode({
-      gecoOriginalDocumentId: gecoOriginalDocumentId,
-      document: document
-    });
-  document.setProperty(
-    "jsonDocumentMetadata",
-    JSON.stringify(documentIndexationData.jsonDocumentMetadata)
-  );
-  document.setProperty(
-    "firstWordOfDocumentDescription",
-    documentIndexationData.firstWordOfDocumentDescription
-  );
-
-  function getDocumentIndexationDataFromGecoBarCode({ gecoOriginalDocumentId: gecoOriginalDocumentId, document: document }) {
-    const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription] =
-      (function () {
-        const [compteId, numeroContrat, documentDescription] =
-          (function () {
-            const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + gecoOriginalDocumentId;
-            const queryResult = new DbServer('MAF BDD').query(query)[0];
-            const compteId = queryResult[0];
-            const numeroContrat = (function () {
-              const contratId = queryResult[1];
-              const contratLettreCle = queryResult[2];
-              return contratId + contratLettreCle;
-            })();
-            const documentDescription = queryResult[3];
-            return [compteId, numeroContrat, documentDescription];
-          })();
-        const firstWordOfDocumentDescription =
-          (function () {
-            const firstWordOfDocumentDescription =
-              (documentDescription.match(/^(?:Questionnaire)|(?:Contrat)/gi) || [null])[0];
-            return firstWordOfDocumentDescription ?
-              firstWordOfDocumentDescription.toLocaleUpperCase() :
-              firstWordOfDocumentDescription;
-          })();
-        const [famille, cote, typeDocument] =
-          (function () {
-            switch (firstWordOfDocumentDescription) {
-              case "QUESTIONNAIRE":
-                return ["DOCUMENTS CONTRAT", "SOUSCRIPTION", "QUESTIONNAIRE TECHNIQUE"];
-              case "CONTRAT":
-              default:
-                return ["DOCUMENTS CONTRAT", "PIECES CONTRACTUELLES", "CONDITIONS PARTICULIERES"];
-            }
-          })();
-        return [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription];
-      })();
-    const libelle =
-      firstWordOfDocumentDescription[0].toLocaleUpperCase() +
-      firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
-      numeroContrat +
-      (areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat") ? " signé" : "");
-    const fichierNom = libelle + ".pdf";
-    const jsonDocumentMetadata = {
-      "canalId": "10",
-      "categoriesCote": cote,
-      "categoriesFamille": famille,
-      "categoriesTypeDocument": typeDocument,
-      "compteId": compteId,
-      "deposePar": document.getProperty("codeUtilisateur"),
-      "fichierNom": fichierNom,
-      "fichierNombrePages": document.pages.length,
-      "libelle": libelle,
-      "nature": "ORIGINAL",
-      "numeroContrat": numeroContrat,
-      "sens": "RECEPTION",
-    };
-    document.fields["famille"].setValue(famille);
-    document.fields["cote"].setValue(cote);
-    document.fields["typeDocument"].setValue(cote);
-    document.fields["compteId"].setValue(compteId);
-    document.fields["fichierNom"].setValue(fichierNom);
-    document.fields["libelle"].setValue(libelle);
-    document.fields["numeroContrat"].setValue(numeroContrat);
-    return {
-      jsonDocumentMetadata: jsonDocumentMetadata,
-      firstWordOfDocumentDescription: firstWordOfDocumentDescription
-    };
-  }
-}
