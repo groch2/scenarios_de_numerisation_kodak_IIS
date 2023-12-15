@@ -63,6 +63,7 @@ var documents =
 				document.TraitePar,
 				document.VuLe,
 				document.VuPar,
+				queueStatus = GetDocumentStatus(document),
 			})
 		.OrderBy(document => document.DocumentId);
 documents.Dump();
@@ -138,3 +139,34 @@ VisibilitePapsExtranet
 VuLe
 VuPar
 */
+
+DocumentQueueStatus GetDocumentStatus(MAF.GED.Domain.Model.Document document) {
+	return 
+		GetDocumentStatus(
+		    documentTraiteDate: document.TraiteLe,
+		    documentVuDate: document.VuLe,
+		    documentQualiteValideeDate: document.QualiteValideeLe,
+		    documentIsQualiteValidated: document.QualiteValideeValide);
+
+	DocumentQueueStatus GetDocumentStatus(
+	            DateTime? documentTraiteDate,
+	            DateTime? documentVuDate,
+	            DateTime? documentQualiteValideeDate,
+	            bool? documentIsQualiteValidated) =>
+	            0 switch {
+	                _ when documentTraiteDate != null =>
+	                    DocumentQueueStatus.TRAITE,
+	                _ when (documentVuDate ?? documentQualiteValideeDate) == null =>
+	                    DocumentQueueStatus.NOUVEAU,
+	                _ when documentVuDate != null && documentQualiteValideeDate != null && documentIsQualiteValidated != true =>
+	                    DocumentQueueStatus.INVALIDE,
+	                _ => DocumentQueueStatus.A_TRAITER
+	            };
+}
+
+enum DocumentQueueStatus {
+    NOUVEAU,
+    INVALIDE,
+    A_TRAITER,
+    TRAITE
+}
