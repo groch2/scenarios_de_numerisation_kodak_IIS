@@ -134,19 +134,34 @@ function preProcess(node) {
  */
 function postProcess(node) {
   const dateNow = new Date().toJSON();
-  const codeUtilisateur = node.getProperty("codeUtilisateur");
   const jsonDocumentMetadata = JSON.parse(node.getProperty("jsonDocumentMetadata"));
   jsonDocumentMetadata.dateDocument =
     jsonDocumentMetadata.dateNumerisation =
     jsonDocumentMetadata.deposeLe = dateNow;
-  const firstWordOfDocumentDescription = node.getProperty("firstWordOfDocumentDescription");
-  if (!areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "questionnaire")) {
-    jsonDocumentMetadata.qualiteValideeLe =
-      jsonDocumentMetadata.traiteLe =
-      jsonDocumentMetadata.vuLe = dateNow;
-    jsonDocumentMetadata.traitePar = codeUtilisateur;
-    jsonDocumentMetadata.vuPar = codeUtilisateur;
-  }
+  (function () {
+    const codeUtilisateur = node.getProperty("codeUtilisateur");
+    const jobName = node.getJob().getName().toUpperCase();
+    switch (jobName) {
+      case "GECO1":
+        const firstWordOfDocumentDescription = node.getProperty("firstWordOfDocumentDescription");
+        if (!areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "questionnaire")) {
+          jsonDocumentMetadata.qualiteValideeLe =
+            jsonDocumentMetadata.traiteLe =
+            jsonDocumentMetadata.vuLe = dateNow;
+          jsonDocumentMetadata.traitePar =
+            jsonDocumentMetadata.vuPar = codeUtilisateur;
+        }
+        break;
+      case "GECO2":
+        jsonDocumentMetadata.vuLe =
+          jsonDocumentMetadata.qualiteValideeLe = dateNow;
+        jsonDocumentMetadata.vuPar =
+          jsonDocumentMetadata.qualiteValideePar = codeUtilisateur;
+        break;
+      default:
+        break;
+    }
+  })();
   node.setProperty("jsonDocumentMetadata", JSON.stringify(jsonDocumentMetadata));
 }
 
