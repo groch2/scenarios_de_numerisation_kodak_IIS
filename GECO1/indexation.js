@@ -374,3 +374,112 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  *         (this is the default value, e.g. if you don't return something).
  */
 function keyEvent(evt) { }
+
+function setDocumentIndexationDataFromGecoBarCode({
+  document: document,
+  gecoOriginalDocumentId: gecoOriginalDocumentId,
+  libelleSuffix: libelleSuffix,
+}) {
+  const envoiDocumentIntrouvableError = "envoi document introuvable";
+  try {
+    const documentIndexationData =
+      getDocumentIndexationDataFromGecoBarCode({
+        gecoOriginalDocumentId: gecoOriginalDocumentId,
+        document: document
+      });
+    document.setProperty(
+      "jsonDocumentMetadata",
+      JSON.stringify(documentIndexationData.jsonDocumentMetadata)
+    );
+    document.setProperty(
+      "firstWordOfDocumentDescription",
+      documentIndexationData.firstWordOfDocumentDescription
+    );
+  } catch (error) {
+    if (error.message !== envoiDocumentIntrouvableError) {
+      throw new Error(error)
+    }
+  }
+
+  function getDocumentIndexationDataFromGecoBarCode({
+    gecoOriginalDocumentId: gecoOriginalDocumentId,
+    document: document }) {
+    const [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription, documentDescription] =
+      (function () {
+        const [compteId, numeroContrat, documentDescription] =
+          (function () {
+            const query = "SELECT TOP 1 [Clinzzid] AS [CompteId] ,[Polnzzid] AS [ContratId], [Cliczzid] AS [ContratLettreCle], [DocumentDescription] FROM [dbo].[V_ENVOI_DOCUMENT] WHERE [DocumentId] = " + gecoOriginalDocumentId;
+            const queryResults = new DbServer('MAF BDD').query(query);
+            if (queryResults.length === 0) {
+              ["famille", "cote", "typeDocument", "compteId", "fichierNom", "libelle", "numeroContrat"]
+                .forEach(
+                  function (fieldName) {
+                    document.fields[fieldName].setValue("");
+                  });
+              throw new Error(envoiDocumentIntrouvableError);
+            }
+            const queryResult = queryResults[0];
+            const compteId = queryResult[0];
+            const numeroContrat = (function () {
+              const contratId = queryResult[1];
+              const contratLettreCle = queryResult[2];
+              return contratId + contratLettreCle;
+            })();
+            const documentDescription = queryResult[3];
+            return [compteId, numeroContrat, documentDescription];
+          })();
+        const firstWordOfDocumentDescription =
+          (function () {
+            const firstWordOfDocumentDescription =
+              (documentDescription.match(/^(?:Questionnaire)|(?:Contrat)/gi) || [null])[0];
+            return firstWordOfDocumentDescription ?
+              firstWordOfDocumentDescription.toLocaleUpperCase() :
+              firstWordOfDocumentDescription;
+          })();
+        const [famille, cote, typeDocument] =
+          (function () {
+            switch (firstWordOfDocumentDescription) {
+              case "QUESTIONNAIRE":
+                return ["DOCUMENTS CONTRAT", "SOUSCRIPTION", "QUESTIONNAIRE TECHNIQUE"];
+              case "CONTRAT":
+              default:
+                return ["DOCUMENTS CONTRAT", "PIECES CONTRACTUELLES", "CONDITIONS PARTICULIERES"];
+            }
+          })();
+        return [compteId, numeroContrat, famille, cote, typeDocument, firstWordOfDocumentDescription, documentDescription];
+      })();
+    const isContrat = areStringsEqualsCaseInsensitive(firstWordOfDocumentDescription, "contrat");
+    const libelle =
+      firstWordOfDocumentDescription ?
+        (firstWordOfDocumentDescription[0].toLocaleUpperCase() +
+          firstWordOfDocumentDescription.substring(1).toLocaleLowerCase() + " " +
+          numeroContrat +
+          (isContrat ? (" " + libelleSuffix) : "")) : documentDescription;
+    const fichierNom = libelle + ".pdf";
+    const jsonDocumentMetadata = {
+      "canalId": "10",
+      "categoriesCote": cote,
+      "categoriesFamille": famille,
+      "categoriesTypeDocument": typeDocument,
+      "compteId": compteId,
+      "deposePar": document.getProperty("codeUtilisateur"),
+      "fichierNom": fichierNom,
+      "fichierNombrePages": document.pages.length,
+      "libelle": libelle,
+      "nature": "ORIGINAL",
+      "numeroContrat": numeroContrat,
+      "sens": "RECEPTION",
+    };
+    document.fields["famille"].setValue(famille);
+    document.fields["cote"].setValue(cote);
+    document.fields["typeDocument"].setValue(cote);
+    document.fields["compteId"].setValue(compteId);
+    document.fields["fichierNom"].setValue(fichierNom);
+    document.fields["libelle"].setValue(libelle);
+    document.fields["numeroContrat"].setValue(numeroContrat);
+    return {
+      jsonDocumentMetadata: jsonDocumentMetadata,
+      firstWordOfDocumentDescription: firstWordOfDocumentDescription
+    };
+  }
+}
