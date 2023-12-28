@@ -576,20 +576,6 @@ function httpGetString({ url: url, expectedHttpResponsCode: expectedHttpResponsC
   return responseContent;
 }
 
-function getRandomGuid() {
-  return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
-}
-
-function printObjectProperties({ title: title, object: object }) {
-  out.println(title);
-  debug.print(title);
-  for (var key in object) {
-    const element = object[key];
-    out.println(key + ": " + element);
-    debug.print(key + ": " + element);
-  }
-}
-
 function get_utilisateur_BUT_from_MAF_BUT_API({ mafDomainUserLogin: mafDomainUserLogin }) {
   const butApiBaseAddress = getApplicationSettings().butApiBaseAddress;
   const butApiUtilisateurAddress = butApiBaseAddress + "api/v2/Utilisateurs/" + mafDomainUserLogin
