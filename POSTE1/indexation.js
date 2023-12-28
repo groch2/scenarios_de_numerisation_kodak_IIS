@@ -97,7 +97,26 @@ function preProcess(node) { }
 /**
  * Called after finishing indexing on a node of this class
  */
-function postProcess(node) { }
+function postProcess(node) {
+  const dateNow = new Date().toJSON();
+  const jsonDocumentMetadata = JSON.parse(node.getProperty("jsonDocumentMetadata"));
+  jsonDocumentMetadata.dateDocument =
+    jsonDocumentMetadata.dateNumerisation =
+    jsonDocumentMetadata.deposeLe = dateNow;
+  const codeUtilisateur = (function () {
+    const userName = loggedUser.getUsername();
+    const codeUtilisateur =
+      get_utilisateur_BUT_from_MAF_BUT_API({ mafDomainUserLogin: userName }).codeUtilisateur.trim();
+    return codeUtilisateur;
+  })();
+  jsonDocumentMetadata.deposePar = codeUtilisateur;
+  jsonDocumentMetadata.categoriesFamille = "PAPS";
+  jsonDocumentMetadata.categoriesCote = "GESTION";
+  jsonDocumentMetadata.categoriesTypeDocument = "AR POSTE";
+  jsonDocumentMetadata.libelle = "AR POSTE LA POSTE";
+  jsonDocumentMetadata.statut = "NOUVEAU";
+  node.setProperty("jsonDocumentMetadata", JSON.stringify(jsonDocumentMetadata));
+}
 
 /**
  * Called when a field gains focus. 
@@ -120,9 +139,7 @@ function fieldFocusGained(field, index) { }
  *  false: forces focus to remain to this field
  *  Const.MoveToNextNode: index next node
  */
-function fieldFocusLost(field, index) {
-  return true;
-}
+function fieldFocusLost(field, index) { return true; }
 
 /**
  * Called every time the value of a field is changed.
@@ -133,25 +150,56 @@ function fieldFocusLost(field, index) {
  */
 function fieldChanged(field, index) { }
 
-function numeroDossierSinistreChanged(field) {
+function numeroSinistreChanged(field) {
+  debug.print("numeroSinistreChanged DEBUT");
+  const champsIndexation = ["numeroDossier", "assigneGroup", "assigneRedacteur", "compteId"];
+  champsIndexation.forEach(function (champ) {
+    document.getField(champ).setValue("");
+  });
   const numeroSinistre = field.value;
-  if (numeroSinistre === "") {
+  debug.print("numeroSinistre: " + numeroSinistre);
+  if (!/^\d+$/.test(numeroSinistre)) {
+    debug.print("numeroSinistreChanged EXIT 1");
     return;
   }
-  const query = "SELECT [NO_DOSSIER], [Service], [Groupe], [Code_Redacteur], [numero_Adherent] FROM [dbo].[V_AFFAIRE_PAPS] WHERE [Numero_Sinistre] = " + numeroSinistre;
+  debug.print("numéro sinistre OK");
+  const query = "SELECT TOP 1 [NO_DOSSIER], [Groupe], [numero_Adherent], [compte_nt] FROM [dbo].[V_AFFAIRE_PAPS] WHERE [Numero_Sinistre] = " + numeroSinistre;
   const queryResults = new DbServer('MAF BDD').query(query)
-  if (queryResults.length === 0) {
+  if (queryResults.length !== 1) {
+    debug.print("numeroSinistreChanged EXIT 2");
     return;
   }
+  debug.print("V_AFFAIRE_PAPS from numéro sinistre OK");
   const queryResult = queryResults[0];
-  const NumeroSinistre = queryResult[0];
-  const AssigneGroup = queryResult[1];
-  const AssigneRedacteur = queryResult[2];
-  const CompteId = queryResult[3];
+  const [numeroDossier, assigneGroup, compteId, redacteurCompteDomaineMaf] = queryResult;
+  debug.print(JSON.stringify({
+    numeroDossier: numeroDossier,
+    assigneGroup: assigneGroup,
+    compteId: compteId,
+    redacteurCompteDomaineMaf: redacteurCompteDomaineMaf
+  }));
+  redacteurCompteDomaineMaf = redacteurCompteDomaineMaf.replace("\\+", "\\");
+  const redacteurUserIdentifier = extract_user_identifier_from_MAF_NT_login(redacteurCompteDomaineMaf);
+  debug.print(JSON.stringify({ redacteurUserIdentifier: redacteurUserIdentifier }));
+  const redacteurUserCode =
+    get_utilisateur_BUT_from_MAF_BUT_API({ mafDomainUserLogin: redacteurUserIdentifier })
+      .codeUtilisateur;
+  const indexationData = {
+    numeroDossier: numeroDossier,
+    assigneGroup: assigneGroup,
+    assigneRedacteur: redacteurUserCode,
+    compteId: compteId
+  };
+  debug.print("indexationData");
+  debug.print(JSON.stringify(indexationData));
+  for (var key in indexationData) {
+    document.getField(key).setValue(indexationData[key]);
+  }
   document.setProperty(
     "jsonDocumentMetadata",
-    JSON.stringify(documentIndexationData.jsonDocumentMetadata)
+    JSON.stringify(indexationData)
   );
+  debug.print("numeroSinistreChanged FIN");
 }
 
 /**

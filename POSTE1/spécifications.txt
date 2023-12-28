@@ -1,0 +1,23 @@
+scénario de numérisation POSTE1
+numérisation d'accusés de réceptions avec n° de sinistre inscrit sur l'accusé de réception
+
+N° de dossier sinistre
+Trigramme gestionnaire
+date du document
+
+le Trigramme gestionnaire est déduit du N° de dossier sinistre
+chercher le n° de dossier sinistre dans PAPS
+
+tryptique:
+	familles: PAPS
+	cote: GESTION
+	type doc: AR POSTE
+	
+libellé: AR POSTE LA POSTE
+STATUT: NOUVEAU
+
+reprendre les données à récupérer dans le script VB
+
+
+Règles de gestions trouvées dans le script VB du scénario de numérisation Iris :
+ligne 933 CODE_GESTIONNAIRE_REDAC

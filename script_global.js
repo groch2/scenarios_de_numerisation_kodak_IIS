@@ -589,6 +589,11 @@ function get_utilisateur_BUT_from_MAF_BUT_API({ mafDomainUserLogin: mafDomainUse
   return utilisateurBut;
 }
 
+function extract_user_identifier_from_MAF_NT_login(MAF_NT_login) {
+  const regexResult = /^MAF_NT\\([\w\.]+)$/i.exec(MAF_NT_login);
+  return regexResult === null ? null : regexResult[1];
+}
+
 function getApplicationSettings() {
   return {
     "gedApiBaseAddress": "https://api-ged-intra.int.maf.local/",
