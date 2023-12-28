@@ -109,15 +109,12 @@ function unload(batch) { }
 function preProcess(node) {
   libelleSuffix = node.getParent().getProperty("libelleSuffix");
   if (!node.getProperty("codeUtilisateur")) {
-    const codeUtilisateur =
-      (function () {
-        const butApiBaseAddress = getApplicationSettings().butApiBaseAddress;
-        const userName = loggedUser.getUsername();
-        const butApiUtilisateurAddress = butApiBaseAddress + "api/v2/Utilisateurs/" + userName
-        return JSON.parse(
-          httpGetString(butApiUtilisateurAddress)
-        ).codeUtilisateur.trim();
-      })();
+    const codeUtilisateur = (function () {
+      const userName = loggedUser.getUsername();
+      const codeUtilisateur =
+        get_utilisateur_BUT_from_MAF_BUT_API({ mafDomainUserLogin: userName }).codeUtilisateur.trim();
+      return codeUtilisateur;
+    })();
     node.setProperty("codeUtilisateur", codeUtilisateur);
   }
   const gecoOriginalDocumentId = node.getProperty("gecoOriginalDocumentId");

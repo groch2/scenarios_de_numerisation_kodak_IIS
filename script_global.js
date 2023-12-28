@@ -68,9 +68,7 @@ if (isJavaEngine()) {
   }
 *
 */
-function isPasswordValid(password) {
-  return true;
-}
+function isPasswordValid(password) { return true; }
 
 /**
  * ******************************************************
@@ -140,9 +138,7 @@ function isPasswordValid(password) {
  *   dialog.fldDescr.text = 'This is an important batch';
  *   
  */
-function initNewBatchDialogForJob(dialog, jobName) {
-
-}
+function initNewBatchDialogForJob(dialog, jobName) { }
 
 /**
  * 
@@ -310,9 +306,7 @@ function initNewBatchDialogForJob(dialog, jobName) {
  * @param {type} listeners 
  * @return {undefined}
  */
-function customizeNewBatchDialog(listeners) {
-
-}
+function customizeNewBatchDialog(listeners) { }
 
 /**
  * ******************************************************
@@ -361,9 +355,7 @@ function customizeNewBatchDialog(listeners) {
   }  
 
  */
-function filesDroppedWithNoBatch(files, jobs) {
-
-}
+function filesDroppedWithNoBatch(files, jobs) { }
 
 /**
  * This function is called after the user has selected a Batch to open, either
@@ -456,8 +448,7 @@ function newBatch(jobs, scanProfiles) {
  *      a Batch was found and loaded from the local disk, this will be a reference 
  *      to the current Batch, otherwise it will be null.
  */
-function ready(currentBatch) {
-}
+function ready(currentBatch) { }
 
 /**
  * Some general utility functions
@@ -558,12 +549,15 @@ if (!String.prototype.padStart) {
   };
 }
 
-function httpGetString(url) {
+function httpGetString({ url: url, expectedHttpResponsCode: expectedHttpResponsCode, acceptHeader: acceptHeader }) {
+  url = Object.prototype.toString.call(arguments[0]) === '[object String]' ? arguments[0] : url;
   const urlConnection = new URL(url).openConnection();
   urlConnection.setUseCaches(true);
   urlConnection.setRequestMethod("GET");
   urlConnection.setConnectTimeout(1000);
-  // const responseCode = urlConnection.getResponseCode();
+  if (acceptHeader !== undefined) {
+    urlConnection.setRequestProperty('accept', acceptHeader);
+  }
   const bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
   var inputLine;
   const stringBuffer = new StringBuffer();
@@ -572,7 +566,14 @@ function httpGetString(url) {
   }
   bufferedReader.close();
   urlConnection.disconnect();
-  return stringBuffer.toString();
+  const responseContent = stringBuffer.toString();
+  if (expectedHttpResponsCode !== undefined) {
+    const actualResponseCode = urlConnection.getResponseCode();
+    if (actualResponseCode !== expectedHttpResponsCode) {
+      throw new Error(JSON.stringify({ responseCode: actualResponseCode, responseContent: responseContent }));
+    }
+  }
+  return responseContent;
 }
 
 function getRandomGuid() {
@@ -589,6 +590,18 @@ function printObjectProperties({ title: title, object: object }) {
   }
 }
 
+function get_utilisateur_BUT_from_MAF_BUT_API({ mafDomainUserLogin: mafDomainUserLogin }) {
+  const butApiBaseAddress = getApplicationSettings().butApiBaseAddress;
+  const butApiUtilisateurAddress = butApiBaseAddress + "api/v2/Utilisateurs/" + mafDomainUserLogin
+  const httpResponseContent =
+    httpGetString({
+      url: butApiUtilisateurAddress,
+      expectedHttpResponsCode: 200,
+      acceptHeader: "application/json"
+    });
+  const utilisateurBut = JSON.parse(httpResponseContent);
+  return utilisateurBut;
+}
 
 function getApplicationSettings() {
   return {
