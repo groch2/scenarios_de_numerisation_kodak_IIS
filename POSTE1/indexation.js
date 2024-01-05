@@ -110,7 +110,7 @@ function postProcess(node) {
     return codeUtilisateur;
   })();
   jsonDocumentMetadata.deposePar = codeUtilisateur;
-  jsonDocumentMetadata.categoriesFamille = "PAPS";
+  jsonDocumentMetadata.categoriesFamille = "DOCUMENTS PAPS";
   jsonDocumentMetadata.categoriesCote = "GESTION";
   jsonDocumentMetadata.categoriesTypeDocument = "AR POSTE";
   jsonDocumentMetadata.libelle = "AR POSTE LA POSTE";

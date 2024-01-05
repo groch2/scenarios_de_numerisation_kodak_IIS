@@ -9,7 +9,7 @@ le Trigramme gestionnaire est déduit du N° de dossier sinistre
 chercher le n° de dossier sinistre dans PAPS
 
 tryptique:
-	familles: PAPS
+	familles: DOCUMENTS PAPS
 	cote: GESTION
 	type doc: AR POSTE
 	
