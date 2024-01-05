@@ -1,5 +1,6 @@
 <Query Kind="Statements">
   <Reference>C:\TeamProjects\GED API\MAF.GED.API.Host\bin\Debug\net6.0\MAF.GED.Domain.Model.dll</Reference>
+  <Namespace>System.Globalization</Namespace>
   <Namespace>System.Net.Http</Namespace>
   <Namespace>System.Text.Json</Namespace>
   <Namespace>System.Text.Json.Nodes</Namespace>
@@ -7,8 +8,9 @@
 </Query>
 
 var tempFile = Path.Combine(Path.GetTempPath(), "temporary_KIIS_logs.txt");
+var today = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.GetCultureInfo("fr-FR"));
 File.Copy(
-	sourceFileName: @"\\cons-kodak-intra.dev.maf.local\c$\InfoInputSolution\logs\imagetrustreleasedaemon-stdout.2023-12-15.log",
+	sourceFileName: @$"\\cons-kodak-intra.dev.maf.local\c$\InfoInputSolution\logs\imagetrustreleasedaemon-stdout.{today}.log",
 	destFileName: tempFile,
 	overwrite: true);
 var documentIdList =
@@ -88,6 +90,37 @@ var documents =
 		.OrderBy(document => document.DocumentId);
 documents.Dump();
 
+DocumentQueueStatus GetDocumentStatus(MAF.GED.Domain.Model.Document document) {
+	return 
+		GetDocumentStatus(
+		    documentTraiteDate: document.TraiteLe,
+		    documentVuDate: document.VuLe,
+		    documentQualiteValideeDate: document.QualiteValideeLe,
+		    documentIsQualiteValidated: document.QualiteValideeValide);
+
+	DocumentQueueStatus GetDocumentStatus(
+	            DateTime? documentTraiteDate,
+	            DateTime? documentVuDate,
+	            DateTime? documentQualiteValideeDate,
+	            bool? documentIsQualiteValidated) =>
+	            0 switch {
+	                _ when documentTraiteDate != null =>
+	                    DocumentQueueStatus.TRAITE,
+	                _ when (documentVuDate ?? documentQualiteValideeDate) == null =>
+	                    DocumentQueueStatus.NOUVEAU,
+	                _ when documentVuDate != null && documentQualiteValideeDate != null && documentIsQualiteValidated != true =>
+	                    DocumentQueueStatus.INVALIDE,
+	                _ => DocumentQueueStatus.A_TRAITER
+	            };
+}
+
+enum DocumentQueueStatus {
+    NOUVEAU,
+    INVALIDE,
+    A_TRAITER,
+    TRAITE
+}
+
 /*
 AssigneDepartement
 AssigneGroup
@@ -159,34 +192,3 @@ VisibilitePapsExtranet
 VuLe
 VuPar
 */
-
-DocumentQueueStatus GetDocumentStatus(MAF.GED.Domain.Model.Document document) {
-	return 
-		GetDocumentStatus(
-		    documentTraiteDate: document.TraiteLe,
-		    documentVuDate: document.VuLe,
-		    documentQualiteValideeDate: document.QualiteValideeLe,
-		    documentIsQualiteValidated: document.QualiteValideeValide);
-
-	DocumentQueueStatus GetDocumentStatus(
-	            DateTime? documentTraiteDate,
-	            DateTime? documentVuDate,
-	            DateTime? documentQualiteValideeDate,
-	            bool? documentIsQualiteValidated) =>
-	            0 switch {
-	                _ when documentTraiteDate != null =>
-	                    DocumentQueueStatus.TRAITE,
-	                _ when (documentVuDate ?? documentQualiteValideeDate) == null =>
-	                    DocumentQueueStatus.NOUVEAU,
-	                _ when documentVuDate != null && documentQualiteValideeDate != null && documentIsQualiteValidated != true =>
-	                    DocumentQueueStatus.INVALIDE,
-	                _ => DocumentQueueStatus.A_TRAITER
-	            };
-}
-
-enum DocumentQueueStatus {
-    NOUVEAU,
-    INVALIDE,
-    A_TRAITER,
-    TRAITE
-}
