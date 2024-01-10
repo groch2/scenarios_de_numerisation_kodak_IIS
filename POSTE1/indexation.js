@@ -102,7 +102,7 @@ function preProcess(node) {
 function postProcess(node) {
   debug.print("postProcess DEBUT");
   const _isIndexationValid = document.getProperty(isIndexationValid);
-  if (_isIndexationValid) {
+  if (!_isIndexationValid) {
     return;
   }
   debug.print("postProcess 1");
