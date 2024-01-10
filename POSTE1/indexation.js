@@ -98,8 +98,12 @@ function preProcess(node) { }
  * Called after finishing indexing on a node of this class
  */
 function postProcess(node) {
-  const dateNow = new Date().toJSON();
+  const _isIndexationValid = document.getProperty(isIndexationValid);
+  if (_isIndexationValid) {
+    return;
+  }
   const jsonDocumentMetadata = JSON.parse(node.getProperty("jsonDocumentMetadata"));
+  const dateNow = new Date().toJSON();
   jsonDocumentMetadata.dateDocument =
     jsonDocumentMetadata.dateNumerisation =
     jsonDocumentMetadata.deposeLe = dateNow;
@@ -152,6 +156,7 @@ function fieldChanged(field, index) { }
 
 function numeroSinistreChanged(field) {
   debug.print("numeroSinistreChanged DEBUT");
+  document.setProperty(isIndexationValid, false);
   const champsIndexation = ["numeroDossier", "assigneGroup", "assigneRedacteur", "compteId"];
   champsIndexation.forEach(function (champ) {
     document.getField(champ).setValue("");
@@ -199,6 +204,7 @@ function numeroSinistreChanged(field) {
     "jsonDocumentMetadata",
     JSON.stringify(indexationData)
   );
+  document.setProperty(isIndexationValid, true);
   debug.print("numeroSinistreChanged FIN");
 }
 
@@ -380,3 +386,5 @@ function fieldOcrCompleted(field, extractionData, maxConfidenceData) { }
  *         (this is the default value, e.g. if you don't return something).
  */
 function keyEvent(evt) { }
+
+const isIndexationValid = "isIndexationValid";
