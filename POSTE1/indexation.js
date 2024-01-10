@@ -92,16 +92,20 @@ function unload(batch) { }
  *   Const.MoveToNextNode: index next node
  *   { MoveToField: '<FieldName>' }: set focus to specific field
  */
-function preProcess(node) { }
+function preProcess(node) {
+  document.setProperty(isIndexationValid, false);
+}
 
 /**
  * Called after finishing indexing on a node of this class
  */
 function postProcess(node) {
+  debug.print("postProcess DEBUT");
   const _isIndexationValid = document.getProperty(isIndexationValid);
   if (_isIndexationValid) {
     return;
   }
+  debug.print("postProcess 1");
   const jsonDocumentMetadata = JSON.parse(node.getProperty("jsonDocumentMetadata"));
   const dateNow = new Date().toJSON();
   jsonDocumentMetadata.dateDocument =
@@ -120,6 +124,7 @@ function postProcess(node) {
   jsonDocumentMetadata.libelle = "AR POSTE LA POSTE";
   jsonDocumentMetadata.statut = "NOUVEAU";
   node.setProperty("jsonDocumentMetadata", JSON.stringify(jsonDocumentMetadata));
+  debug.print("postProcess FIN");
 }
 
 /**
