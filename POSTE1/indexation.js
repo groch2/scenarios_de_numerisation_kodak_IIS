@@ -123,6 +123,7 @@ function postProcess(node) {
   jsonDocumentMetadata.categoriesTypeDocument = "AR POSTE";
   jsonDocumentMetadata.libelle = "AR POSTE LA POSTE";
   jsonDocumentMetadata.statut = "NOUVEAU";
+  jsonDocumentMetadata.canalId = "12";
   node.setProperty("jsonDocumentMetadata", JSON.stringify(jsonDocumentMetadata));
   debug.print("postProcess FIN");
 }
