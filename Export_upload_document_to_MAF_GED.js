@@ -49,8 +49,7 @@ function release(context) {
     const documentId =
       finalizeDocumentUpload({
         fileUploadGuid: fileUploadGuid,
-        jsonDocumentMetadata: jsonDocumentMetadata,
-        fileSize: file.length()
+        jsonDocumentMetadata: jsonDocumentMetadata
       }).documentId;
     file.delete();
     out.println(JSON.stringify({ documentId: documentId }));
@@ -126,11 +125,9 @@ function release(context) {
 
   function finalizeDocumentUpload({
     fileUploadGuid: fileUploadGuid,
-    jsonDocumentMetadata: jsonDocumentMetadata,
-    fileSize: fileSize }) {
+    jsonDocumentMetadata: jsonDocumentMetadata }) {
     jsonDocumentMetadata = (function () {
       jsonDocumentMetadata.fileId = fileUploadGuid;
-      jsonDocumentMetadata.fichierTaille = fileSize;
       return JSON.stringify(jsonDocumentMetadata);
     })();
 
