@@ -26,8 +26,8 @@ function release(context) {
     }
     const file = (function () {
       const releaseItemId = document.getId();
-      const outputFiles = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES)[releaseItemId];
-      return new File(outputFiles[0]);
+      const outputFilePath = context.getSharedObject(ImagesReleaseCommon.OUTPARAM_FILES)[releaseItemId][0];
+      return new File(outputFilePath);
     })();
 
     if (!file.exists()) {
