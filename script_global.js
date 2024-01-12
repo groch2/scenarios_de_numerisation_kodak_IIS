@@ -491,7 +491,7 @@ function compareStringsCaseInsensitive(a, b) {
 
 function GetCurrentUserTrigramme() {
   const userName = loggedUser.getUsername();
-  return JSON.parse(httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
+  return JSON.parse(httpGetString(applicationSettings.butApiBaseAddress + "api/v2/Utilisateurs/" + userName)
   ).codeUtilisateur.trim();
 }
 
@@ -560,7 +560,7 @@ function httpGetString({ url: url, expectedHttpResponsCode: expectedHttpResponsC
   const urlConnection = new URL(url).openConnection();
   urlConnection.setUseCaches(true);
   urlConnection.setRequestMethod("GET");
-  urlConnection.setConnectTimeout(1000);
+  urlConnection.setConnectTimeout(6000);
   if (acceptHeader !== undefined) {
     urlConnection.setRequestProperty('accept', acceptHeader);
   }
@@ -583,7 +583,7 @@ function httpGetString({ url: url, expectedHttpResponsCode: expectedHttpResponsC
 }
 
 function get_utilisateur_BUT_from_MAF_BUT_API({ mafDomainUserLogin: mafDomainUserLogin }) {
-  const butApiBaseAddress = getApplicationSettings().butApiBaseAddress;
+  const butApiBaseAddress = applicationSettings.butApiBaseAddress;
   const butApiUtilisateurAddress = butApiBaseAddress + "api/v2/Utilisateurs/" + mafDomainUserLogin
   const httpResponseContent =
     httpGetString({
@@ -600,15 +600,10 @@ function extract_user_identifier_from_MAF_NT_login(MAF_NT_login) {
   return regexResult === null ? null : regexResult[1];
 }
 
-function getApplicationSettings() {
-  return {
-    "gedApiBaseAddress": "https://api-ged-intra.int.maf.local/",
-    "butApiBaseAddress": "https://api-but-intra.int.maf.local/"
-  };
+const applicationSettings = {
+  gedApiBaseAddress: "https://api-ged-intra.int.maf.local/",
+  butApiBaseAddress: "https://api-but-intra.int.maf.local/"
 }
-
-const butApiBaseAddress = "https://api-but-intra.int.maf.local/";
-const gedApiBaseAddress = "https://api-ged-intra.int.maf.local/";
 
 function formatDateFr(date, separator) {
   if (date.constructor !== Date.prototype.constructor) {
