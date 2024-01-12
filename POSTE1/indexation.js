@@ -107,10 +107,10 @@ function postProcess(node) {
   }
   debug.print("postProcess 1");
   const jsonDocumentMetadata = JSON.parse(node.getProperty("jsonDocumentMetadata"));
-  const dateNow = new Date().toJSON();
+  const dateNow = new Date();
   jsonDocumentMetadata.dateDocument =
     jsonDocumentMetadata.dateNumerisation =
-    jsonDocumentMetadata.deposeLe = dateNow;
+    jsonDocumentMetadata.deposeLe = dateNow.toJSON();
   const codeUtilisateur = (function () {
     const userName = loggedUser.getUsername();
     const codeUtilisateur =
@@ -124,6 +124,7 @@ function postProcess(node) {
   jsonDocumentMetadata.libelle = "AR POSTE LA POSTE";
   jsonDocumentMetadata.statut = "NOUVEAU";
   jsonDocumentMetadata.canalId = "12";
+  jsonDocumentMetadata.FichierNom = "AR_" + formatDateFr(dateNow, "-") + ".pdf";
   node.setProperty("jsonDocumentMetadata", JSON.stringify(jsonDocumentMetadata));
   debug.print("postProcess FIN");
 }

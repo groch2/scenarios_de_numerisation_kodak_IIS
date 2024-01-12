@@ -489,6 +489,12 @@ function compareStringsCaseInsensitive(a, b) {
     );
 }
 
+function GetCurrentUserTrigramme() {
+  const userName = loggedUser.getUsername();
+  return JSON.parse(httpGetString("https://api-but-intra.int.maf.local/api/v2/Utilisateurs/" + userName)
+  ).codeUtilisateur.trim();
+}
+
 function areStringsEqualsCaseInsensitive(a, b) {
   return compareStringsCaseInsensitive(a, b) === 0;
 }
@@ -603,3 +609,14 @@ function getApplicationSettings() {
 
 const butApiBaseAddress = "https://api-but-intra.int.maf.local/";
 const gedApiBaseAddress = "https://api-ged-intra.int.maf.local/";
+
+function formatDateFr(date, separator) {
+  if (date.constructor !== Date.prototype.constructor) {
+    throw new Error(JSON.stringify({ message: "expected parameter of type Date", actualParameter: date }));
+  }
+  separator = separator || "-";
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear().toString();
+  return day + separator + month + separator + year;
+}
